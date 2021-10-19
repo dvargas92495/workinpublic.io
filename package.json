@@ -1,0 +1,40 @@
+{
+  "name": "workinpublic.io",
+  "description": "Description for workinpublic.io",
+  "version": "0.0.0",
+  "license": "MIT",
+  "repository": "dvargas92495/workinpublic.io",
+  "scripts": {
+    "format": "prettier --write \"**/*.tsx\"",
+    "lint": "eslint . --ext .ts,.tsx",
+    "api": "fuego api",
+    "build": "fuego build",
+    "compile": "fuego compile",
+    "deploy": "fuego deploy",
+    "fe": "fuego fe",
+    "migrate": "npm run typeorm migration:run",
+    "publish": "fuego publish",
+    "typeorm": "ts-node --transpile-only ./node_modules/typeorm/cli.js"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.84",
+    "@types/node": "^16.11.1",
+    "@types/react": "^17.0.30",
+    "@types/react-dom": "^17.0.9",
+    "@typescript-eslint/eslint-plugin": "^5.1.0",
+    "@typescript-eslint/parser": "^5.1.0",
+    "eslint": "^8.0.1",
+    "fuegojs": "^0.7.8",
+    "prettier": "^2.4.1",
+    "ts-node": "^10.3.0",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint-react-hooks": "^2.2.2",
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "@dvargas92495/api": "^0.2.0",
+    "@dvargas92495/ui": "^0.35.4",
+    "aws-sdk-plus": "^0.2.1",
+    "axios": "^0.23.0"
+  }
+}
