@@ -1,7 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { LayoutHead } from "./_common/Layout";
 import Document from "@dvargas92495/ui/dist/components/Document";
 import RedirectToLogin from "@dvargas92495/ui/dist/components/RedirectToLogin";
+import useAuthenticatedHandler from "@dvargas92495/ui/dist/useAuthenticatedHandler";
+import type { Handler as GetHandler } from "../functions/funding-boards/get";
+import type { Handler as PostHandler } from "../functions/funding-board/post";
 import { SignedIn, useUser, UserButton } from "@clerk/clerk-react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
@@ -9,11 +12,16 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemButton from "@mui/material/ListItemButton";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import HomeIcon from "@mui/icons-material/Home";
+import StarBorderIcon from "@mui/icons-material/StarBorder";
+import AddCircleOutlineSharpIcon from "@mui/icons-material/AddCircleOutlineSharp";
 import FundingBoardIcon from "@mui/icons-material/DeveloperBoard";
+import ExpandLess from "@mui/icons-material/ExpandLess";
+import ExpandMore from "@mui/icons-material/ExpandMore";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -22,6 +30,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
+import Collapse from "@mui/material/Collapse";
+import Dialog from "@mui/material/Dialog";
 
 interface Column {
   id: "name" | "code" | "population" | "size" | "density";
@@ -93,7 +103,7 @@ const rows = [
   createData("Brazil", "BR", 210147125, 8515767),
 ];
 
-const StickyHeadTable = () => {
+const StickyHeadTable = ({ id }: { id: string }) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
 
@@ -110,6 +120,9 @@ const StickyHeadTable = () => {
     setRowsPerPage(+event.target.value);
     setPage(0);
   };
+  useEffect(() => {
+    console.log("fetch by id", id);
+  }, [id]);
 
   return (
     <Paper sx={{ width: "100%", overflow: "hidden" }}>
@@ -165,14 +178,135 @@ const StickyHeadTable = () => {
 
 const DRAWER_WIDTH = 240;
 const TABS = [
-  { text: "Home", Icon: HomeIcon, content: () => <div /> },
-  { text: "Funding Board", Icon: FundingBoardIcon, content: StickyHeadTable },
-];
+  { text: "Home", Icon: HomeIcon, content: () => <div />, nested: false },
+  {
+    text: "Funding Board",
+    Icon: FundingBoardIcon,
+    content: StickyHeadTable,
+    nested: true,
+  },
+] as const;
+
+type TabItem = { text: string; id: string };
+const NestedTab = ({
+  getItems,
+  text,
+  Icon,
+  setTab,
+}: {
+  getItems: () => Promise<TabItem[]>;
+  text: string;
+  Icon: typeof StarBorderIcon;
+  setTab: (is: string) => void;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [items, setItems] = useState<TabItem[]>([]);
+  const postFundingBoard = useAuthenticatedHandler<PostHandler>({
+    method: "POST",
+    path: "funding-board",
+  });
+  useEffect(() => {
+    getItems().then(setItems);
+  }, [getItems, setItems, postFundingBoard]);
+  return (
+    <>
+      <ListItemButton onClick={() => setIsOpen(!isOpen)}>
+        <ListItemIcon sx={{ color: "inherit" }}>
+          <Icon />
+        </ListItemIcon>
+        <ListItemText primary={text} />
+        {isOpen ? <ExpandLess /> : <ExpandMore />}
+      </ListItemButton>
+      <Collapse in={isOpen} timeout="auto" unmountOnExit>
+        <List component="div" disablePadding>
+          {items.map((item) => (
+            <ListItemButton
+              sx={{ pl: 4 }}
+              key={item.id}
+              onClick={() => setTab(item.id)}
+            >
+              <ListItemIcon sx={{ color: "inherit" }}>
+                <StarBorderIcon />
+              </ListItemIcon>
+              <ListItemText primary={item.text} />
+            </ListItemButton>
+          ))}
+          <ListItemButton sx={{ pl: 4 }} onClick={() => setIsDialogOpen(true)}>
+            <ListItemIcon sx={{ color: "inherit" }}>
+              <AddCircleOutlineSharpIcon />
+            </ListItemIcon>
+            <ListItemText primary={"Create"} />
+          </ListItemButton>
+        </List>
+      </Collapse>
+      <Dialog open={!!isDialogOpen} onClose={() => setIsDialogOpen(false)}>
+        {/**
+       * 
+        <DialogTitle>Edit Application Name</DialogTitle>
+        <DialogContent>
+          <StringField
+            value={editing?.name || ""}
+            setValue={(v) => editing && setEditing({ ...editing, name: v })}
+            required
+            fullWidth
+            name={"Name"}
+            label={"Name"}
+            variant={"filled"}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              if (!editing) return;
+              putApplications(editing).then((r) => {
+                if (r.success)
+                  setItems(
+                    items.map((item) =>
+                      item.uuid === editing?.uuid ? editing : item
+                    )
+                  );
+                setEditing(undefined);
+              });
+            }}
+            color="primary"
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      */}
+      </Dialog>
+    </>
+  );
+};
 
 const Dashboard = () => {
   const user = useUser();
-  const [tab, setTab] = useState(0);
-
+  const [tab, setTab] = useState({ index: 0, id: "" });
+  const TabContent = TABS[tab.index].content;
+  const getFundingBoards = useAuthenticatedHandler<GetHandler>({
+    method: "GET",
+    path: "funding-boards",
+  });
+  const getItemsByTab: {
+    [k in typeof TABS[number] as k["nested"] extends true
+      ? k["text"]
+      : never]: Parameters<typeof NestedTab>[0]["getItems"];
+  } = useMemo(
+    () =>
+      ({
+        "Funding Board": () =>
+          getFundingBoards()
+            .then(({ fundingBoards }) =>
+              fundingBoards.map(({ uuid, name }) => ({
+                id: uuid,
+                text: name,
+              }))
+            )
+            .catch(() => []),
+      } as const),
+    [getFundingBoards]
+  );
   return (
     <Box sx={{ display: "flex" }}>
       <AppBar
@@ -211,19 +345,29 @@ const Dashboard = () => {
       >
         <Toolbar />
         <List>
-          {TABS.map(({ text, Icon }, index) => (
-            <ListItem
-              button
-              key={index}
-              onClick={() => setTab(index)}
-              sx={{ display: "flex" }}
-            >
-              <ListItemIcon>
-                <Icon />
-              </ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          {TABS.map(({ text, Icon, nested }, index) =>
+            nested ? (
+              <NestedTab
+                key={index}
+                Icon={Icon}
+                text={text}
+                setTab={(id) => setTab({ index, id })}
+                getItems={getItemsByTab[text as keyof typeof getItemsByTab]}
+              />
+            ) : (
+              <ListItem
+                button
+                key={index}
+                onClick={() => setTab({ index, id: "" })}
+                sx={{ display: "flex" }}
+              >
+                <ListItemIcon sx={{ color: "inherit" }}>
+                  <Icon />
+                </ListItemIcon>
+                <ListItemText primary={text} />
+              </ListItem>
+            )
+          )}
         </List>
       </Drawer>
       <Box
@@ -236,8 +380,8 @@ const Dashboard = () => {
         }}
       >
         <Toolbar />
-        <h1>{TABS[tab].text}</h1>
-        {React.createElement(TABS[tab].content)}
+        <h1>{TABS[tab.index].text}</h1>
+        {<TabContent id={tab.id} />}
       </Box>
     </Box>
   );
