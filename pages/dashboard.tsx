@@ -1,10 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { LayoutHead } from "./_common/Layout";
 import Document from "@dvargas92495/ui/dist/components/Document";
 import RedirectToLogin from "@dvargas92495/ui/dist/components/RedirectToLogin";
 import useAuthenticatedHandler from "@dvargas92495/ui/dist/useAuthenticatedHandler";
 import type { Handler as GetHandler } from "../functions/funding-boards/get";
+import type { Handler as GetLinkHandler } from "../functions/funding-board-projects/get";
 import type { Handler as PostHandler } from "../functions/funding-board/post";
+import type { Handler as PostLinkHandler } from "../functions/funding-board-project/post";
 import { SignedIn, useUser, UserButton } from "@clerk/clerk-react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
@@ -18,6 +20,7 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import HomeIcon from "@mui/icons-material/Home";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
+import AddIcon from "@mui/icons-material/Add";
 import AddCircleOutlineSharpIcon from "@mui/icons-material/AddCircleOutlineSharp";
 import FundingBoardIcon from "@mui/icons-material/DeveloperBoard";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -33,183 +36,204 @@ import TableRow from "@mui/material/TableRow";
 import Collapse from "@mui/material/Collapse";
 import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
 import StringField from "@dvargas92495/ui/dist/components/StringField";
+import NumberField from "@dvargas92495/ui/dist/components/NumberField";
 
-interface Column {
-  id: "name" | "code" | "population" | "size" | "density";
+type FundingBoardProject = {
+  uuid: string;
+  name: string;
+  link: string;
+  target: number;
+};
+
+type Column = {
+  id: keyof FundingBoardProject;
   label: string;
   minWidth?: number;
   align?: "right";
   format?: (value: number) => string;
-}
+};
 
 const columns: readonly Column[] = [
   { id: "name", label: "Name", minWidth: 170 },
-  { id: "code", label: "ISO\u00a0Code", minWidth: 100 },
+  { id: "link", label: "Description Link", minWidth: 240 },
   {
-    id: "population",
-    label: "Population",
-    minWidth: 170,
+    id: "target",
+    label: "Funding Target",
+    minWidth: 120,
     align: "right",
-    format: (value: number) => value.toLocaleString("en-US"),
-  },
-  {
-    id: "size",
-    label: "Size\u00a0(km\u00b2)",
-    minWidth: 170,
-    align: "right",
-    format: (value: number) => value.toLocaleString("en-US"),
-  },
-  {
-    id: "density",
-    label: "Density",
-    minWidth: 170,
-    align: "right",
-    format: (value: number) => value.toFixed(2),
+    format: (value: number) => `$${value}`,
   },
 ];
 
-interface Data {
-  name: string;
-  code: string;
-  population: number;
-  size: number;
-  density: number;
-}
-
-function createData(
-  name: string,
-  code: string,
-  population: number,
-  size: number
-): Data {
-  const density = population / size;
-  return { name, code, population, size, density };
-}
-
-const rows = [
-  createData("India", "IN", 1324171354, 3287263),
-  createData("China", "CN", 1403500365, 9596961),
-  createData("Italy", "IT", 60483973, 301340),
-  createData("United States", "US", 327167434, 9833520),
-  createData("Canada", "CA", 37602103, 9984670),
-  createData("Australia", "AU", 25475400, 7692024),
-  createData("Germany", "DE", 83019200, 357578),
-  createData("Ireland", "IE", 4857000, 70273),
-  createData("Mexico", "MX", 126577691, 1972550),
-  createData("Japan", "JP", 126317000, 377973),
-  createData("France", "FR", 67022000, 640679),
-  createData("United Kingdom", "GB", 67545757, 242495),
-  createData("Russia", "RU", 146793744, 17098246),
-  createData("Nigeria", "NG", 200962417, 923768),
-  createData("Brazil", "BR", 210147125, 8515767),
-];
-
-const StickyHeadTable = ({ id }: { id: string }) => {
+type TabItem = { text: string; id: string };
+const FundingBoardTabContent = ({ id, text }: TabItem) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [rows, setRows] = React.useState<FundingBoardProject[]>([]);
+  const getFundingBoardProjects = useAuthenticatedHandler<GetLinkHandler>({
+    method: "GET",
+    path: "funding-board-projects",
+  });
+  const postFundingBoardProject = useAuthenticatedHandler<PostLinkHandler>({
+    method: "POST",
+    path: "funding-board-project",
+  });
 
-  const handleChangePage = (
-    _: React.MouseEvent<HTMLButtonElement> | null,
-    newPage: number
-  ) => {
-    setPage(newPage);
-  };
+  const handleChangePage = useCallback(
+    (_: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+      setPage(newPage);
+    },
+    [setPage]
+  );
 
-  const handleChangeRowsPerPage = (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setRowsPerPage(+event.target.value);
-    setPage(0);
-  };
+  const handleChangeRowsPerPage = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setRowsPerPage(+event.target.value);
+      setPage(0);
+    },
+    [setPage, setRowsPerPage]
+  );
+  const refresh = useCallback(
+    () =>
+      getFundingBoardProjects({
+        board: id,
+        offset: page * rowsPerPage,
+        limit: rowsPerPage,
+      }).then((r) => {
+        setRows([]);
+      }),
+    [id, page, rowsPerPage, setRows]
+  );
   useEffect(() => {
-    console.log("fetch by id", id);
-  }, [id]);
+    refresh();
+  }, [refresh]);
 
   return (
-    <Paper sx={{ width: "100%", overflow: "hidden" }}>
-      <TableContainer sx={{ maxHeight: 440 }}>
-        <Table stickyHeader aria-label="sticky table">
-          <TableHead>
-            <TableRow>
-              {columns.map((column) => (
-                <TableCell
-                  key={column.id}
-                  align={column.align}
-                  style={{ minWidth: column.minWidth }}
-                >
-                  {column.label}
-                </TableCell>
-              ))}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {rows
-              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-              .map((row) => {
-                return (
-                  <TableRow hover role="checkbox" tabIndex={-1} key={row.code}>
-                    {columns.map((column) => {
-                      const value = row[column.id];
-                      return (
-                        <TableCell key={column.id} align={column.align}>
-                          {column.format && typeof value === "number"
-                            ? column.format(value)
-                            : value}
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-          </TableBody>
-        </Table>
-      </TableContainer>
-      <TablePagination
-        rowsPerPageOptions={[10, 25, 100]}
-        component="div"
-        count={rows.length}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Paper>
+    <>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        alignItems={"center"}
+      >
+        <h1>{text}</h1>
+        <FormDialog<Omit<Parameters<PostLinkHandler>[0], "user" | "board">>
+          title={"New Funding Board Project"}
+          buttonText={
+            <>
+              <AddIcon /> New
+            </>
+          }
+          formElements={{
+            name: {
+              defaultValue: '',
+              order: 0,
+              component: StringField,
+              validate: (s) => !!s ? '' : "`name` is required"
+            },
+            link: {
+              defaultValue: '',
+              order: 1,
+              component: StringField,
+              validate: () => ''
+            },
+            target: {
+              defaultValue: 100,
+              order: 2,
+              component: NumberField,
+              validate: (n) => n > 0 ? '' : "`target` must be greater than 0"
+            },
+          }}
+          onSave={(body) =>
+            postFundingBoardProject({ ...body, board: id }).then(refresh)
+          }
+        />
+      </Box>
+      <Paper sx={{ width: "100%", overflow: "hidden" }}>
+        <TableContainer sx={{ maxHeight: 440 }}>
+          <Table stickyHeader aria-label="sticky table">
+            <TableHead>
+              <TableRow>
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.id}
+                    align={column.align}
+                    style={{ minWidth: column.minWidth }}
+                  >
+                    {column.label}
+                  </TableCell>
+                ))}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((row) => {
+                  return (
+                    <TableRow
+                      hover
+                      role="checkbox"
+                      tabIndex={-1}
+                      key={row.uuid}
+                    >
+                      {columns.map((column) => {
+                        const value = row[column.id];
+                        return (
+                          <TableCell key={column.id} align={column.align}>
+                            {column.format && typeof value === "number"
+                              ? column.format(value)
+                              : value}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[10, 25, 100]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
+      </Paper>
+    </>
   );
 };
 
 const DRAWER_WIDTH = 240;
 const TABS = [
-  { text: "Home", Icon: HomeIcon, content: () => <div />, nested: false },
+  { text: "Home", Icon: HomeIcon, content: () => <h1>Home</h1>, nested: false },
   {
     text: "Funding Board",
     Icon: FundingBoardIcon,
-    content: StickyHeadTable,
+    content: FundingBoardTabContent,
     nested: true,
   },
 ] as const;
 
-type PostHandlerBody = Omit<Parameters<PostHandler>[0], "user">;
-type TabItem = { text: string; id: string };
 const NestedTab = ({
   getItems,
   text,
   Icon,
   setTab,
+  newItem,
 }: {
   getItems: () => Promise<TabItem[]>;
+  newItem: (p: { name: string }) => Promise<TabItem>;
   text: string;
   Icon: typeof StarBorderIcon;
-  setTab: (is: string) => void;
+  setTab: (i: TabItem) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState<TabItem[]>([]);
-  const postFundingBoard = useAuthenticatedHandler<PostHandler>({
-    method: "POST",
-    path: "funding-board",
-  });
   useEffect(() => {
     getItems().then(setItems);
-  }, [getItems, setItems, postFundingBoard]);
+  }, [getItems, setItems]);
   return (
     <>
       <ListItemButton onClick={() => setIsOpen(!isOpen)}>
@@ -225,7 +249,7 @@ const NestedTab = ({
             <ListItemButton
               sx={{ pl: 4 }}
               key={item.id}
-              onClick={() => setTab(item.id)}
+              onClick={() => setTab(item)}
             >
               <ListItemIcon sx={{ color: "inherit" }}>
                 <StarBorderIcon />
@@ -233,11 +257,11 @@ const NestedTab = ({
               <ListItemText primary={item.text} />
             </ListItemButton>
           ))}
-          <FormDialog<PostHandlerBody>
-            title={"Create Funding Board"}
+          <FormDialog<{ name: string }>
+            title={`Create ${text}`}
             onSave={(body) =>
-              postFundingBoard(body).then((r) => {
-                setItems([...items, { id: r.uuid, text: body.name }]);
+              newItem(body).then((item) => {
+                setItems([...items, item]);
               })
             }
             formElements={{
@@ -264,19 +288,24 @@ const NestedTab = ({
   );
 };
 
+type NestedTabRecord<T> = {
+  [k in typeof TABS[number] as k["nested"] extends true ? k["text"] : never]: T;
+};
 const Dashboard = () => {
   const user = useUser();
-  const [tab, setTab] = useState({ index: 0, id: "" });
-  const TabContent = TABS[tab.index].content;
+  const [tab, setTab] = useState(0);
+  const [nestedTab, setNestedTab] = useState<TabItem>();
+  const TabContent = TABS[tab].content;
   const getFundingBoards = useAuthenticatedHandler<GetHandler>({
     method: "GET",
     path: "funding-boards",
   });
-  const getItemsByTab: {
-    [k in typeof TABS[number] as k["nested"] extends true
-      ? k["text"]
-      : never]: Parameters<typeof NestedTab>[0]["getItems"];
-  } = useMemo(
+  const postFundingBoard = useAuthenticatedHandler<PostHandler>({
+    method: "POST",
+    path: "funding-board",
+  });
+  type NestedTabProps = Parameters<typeof NestedTab>[0];
+  const getItemsByTab: NestedTabRecord<NestedTabProps["getItems"]> = useMemo(
     () =>
       ({
         "Funding Board": () =>
@@ -290,6 +319,16 @@ const Dashboard = () => {
             .catch(() => []),
       } as const),
     [getFundingBoards]
+  );
+  const newItemByTab: NestedTabRecord<NestedTabProps["newItem"]> = useMemo(
+    () => ({
+      "Funding Board": ((body) =>
+        postFundingBoard(body).then((r) => ({
+          id: r.uuid,
+          text: body.name,
+        }))) as NestedTabProps["newItem"],
+    }),
+    [postFundingBoard]
   );
   return (
     <Box sx={{ display: "flex" }}>
@@ -335,14 +374,21 @@ const Dashboard = () => {
                 key={index}
                 Icon={Icon}
                 text={text}
-                setTab={(id) => setTab({ index, id })}
+                setTab={(tab) => {
+                  setTab(index);
+                  setNestedTab(tab);
+                }}
                 getItems={getItemsByTab[text as keyof typeof getItemsByTab]}
+                newItem={newItemByTab[text as keyof typeof newItemByTab]}
               />
             ) : (
               <ListItem
                 button
                 key={index}
-                onClick={() => setTab({ index, id: "" })}
+                onClick={() => {
+                  setTab(index);
+                  setNestedTab(undefined);
+                }}
                 sx={{ display: "flex" }}
               >
                 <ListItemIcon sx={{ color: "inherit" }}>
@@ -364,8 +410,7 @@ const Dashboard = () => {
         }}
       >
         <Toolbar />
-        <h1>{TABS[tab.index].text}</h1>
-        {<TabContent id={tab.id} />}
+        <TabContent {...(nestedTab || { id: "Home", text: "Home" })} />
       </Box>
     </Box>
   );

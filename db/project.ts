@@ -2,6 +2,7 @@ import { EntitySchema } from "typeorm";
 
 type Project = {
   uuid: string;
+  name: string;
   link: string;
   user_id: string;
   target: number;
@@ -14,6 +15,10 @@ export default new EntitySchema<Project>({
       type: "uuid",
       primary: true,
       generated: "uuid",
+    },
+    name: {
+      type: "varchar",
+      nullable: false,
     },
     link: {
       type: "varchar",
