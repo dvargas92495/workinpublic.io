@@ -31,7 +31,8 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Collapse from "@mui/material/Collapse";
-import Dialog from "@mui/material/Dialog";
+import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
+import StringField from "@dvargas92495/ui/dist/components/StringField";
 
 interface Column {
   id: "name" | "code" | "population" | "size" | "density";
@@ -187,6 +188,7 @@ const TABS = [
   },
 ] as const;
 
+type PostHandlerBody = Omit<Parameters<PostHandler>[0], "user">;
 type TabItem = { text: string; id: string };
 const NestedTab = ({
   getItems,
@@ -200,7 +202,6 @@ const NestedTab = ({
   setTab: (is: string) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [items, setItems] = useState<TabItem[]>([]);
   const postFundingBoard = useAuthenticatedHandler<PostHandler>({
     method: "POST",
@@ -232,50 +233,33 @@ const NestedTab = ({
               <ListItemText primary={item.text} />
             </ListItemButton>
           ))}
-          <ListItemButton sx={{ pl: 4 }} onClick={() => setIsDialogOpen(true)}>
-            <ListItemIcon sx={{ color: "inherit" }}>
-              <AddCircleOutlineSharpIcon />
-            </ListItemIcon>
-            <ListItemText primary={"Create"} />
-          </ListItemButton>
+          <FormDialog<PostHandlerBody>
+            title={"Create Funding Board"}
+            onSave={(body) =>
+              postFundingBoard(body).then((r) => {
+                setItems([...items, { id: r.uuid, text: body.name }]);
+              })
+            }
+            formElements={{
+              name: {
+                defaultValue: "",
+                validate: (n: string) => (!!n ? "" : "Name is required"),
+                component: StringField,
+                order: 0,
+              },
+            }}
+            buttonText={"Create"}
+            Button={({ onClick, buttonText }) => (
+              <ListItemButton sx={{ pl: 4 }} onClick={onClick}>
+                <ListItemIcon sx={{ color: "inherit" }}>
+                  <AddCircleOutlineSharpIcon />
+                </ListItemIcon>
+                <ListItemText primary={buttonText} />
+              </ListItemButton>
+            )}
+          />
         </List>
       </Collapse>
-      <Dialog open={!!isDialogOpen} onClose={() => setIsDialogOpen(false)}>
-        {/**
-       * 
-        <DialogTitle>Edit Application Name</DialogTitle>
-        <DialogContent>
-          <StringField
-            value={editing?.name || ""}
-            setValue={(v) => editing && setEditing({ ...editing, name: v })}
-            required
-            fullWidth
-            name={"Name"}
-            label={"Name"}
-            variant={"filled"}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              if (!editing) return;
-              putApplications(editing).then((r) => {
-                if (r.success)
-                  setItems(
-                    items.map((item) =>
-                      item.uuid === editing?.uuid ? editing : item
-                    )
-                  );
-                setEditing(undefined);
-              });
-            }}
-            color="primary"
-          >
-            Submit
-          </Button>
-        </DialogActions>
-      */}
-      </Dialog>
     </>
   );
 };
