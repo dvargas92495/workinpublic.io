@@ -2,10 +2,12 @@ import { EntitySchema } from "typeorm";
 import FundingBoard from './funding_board';
 import Project from './project';
 
+type InverseSchema<T> = T extends EntitySchema<infer R> ? R : never; 
+
 type FundingBoardProject = {
   uuid: string;
-  funding_board: string;
-  project: string;
+  funding_board: InverseSchema<typeof FundingBoard>;
+  project: InverseSchema<typeof Project>;
 };
 
 export default new EntitySchema<FundingBoardProject>({

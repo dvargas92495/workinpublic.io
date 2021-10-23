@@ -100,7 +100,7 @@ const FundingBoardTabContent = ({ id, text }: TabItem) => {
         offset: page * rowsPerPage,
         limit: rowsPerPage,
       }).then((r) => {
-        setRows([]);
+        setRows(r.fundingBoardProjects);
       }),
     [id, page, rowsPerPage, setRows]
   );

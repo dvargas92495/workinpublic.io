@@ -25,7 +25,9 @@ const logic = ({
       })
     )
     .then((fundingBoardProjects) => ({
-      fundingBoardProjects,
+      fundingBoardProjects: fundingBoardProjects.map(
+        ({ project: { user_id, ...rest } }) => rest
+      ),
     }));
 
 export const handler = clerkAuthenticateLambda(
