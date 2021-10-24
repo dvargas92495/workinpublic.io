@@ -1,4 +1,11 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useState,
+  useCallback,
+  MutableRefObject,
+  useRef,
+} from "react";
 import { LayoutHead } from "./_common/Layout";
 import Document from "@dvargas92495/ui/dist/components/Document";
 import RedirectToLogin from "@dvargas92495/ui/dist/components/RedirectToLogin";
@@ -7,6 +14,7 @@ import type { Handler as GetHandler } from "../functions/funding-boards/get";
 import type { Handler as GetLinkHandler } from "../functions/funding-board-projects/get";
 import type { Handler as PostHandler } from "../functions/funding-board/post";
 import type { Handler as PostLinkHandler } from "../functions/funding-board-project/post";
+import type { Handler as PutHandler } from "../functions/funding-board/put";
 import { SignedIn, useUser, UserButton } from "@clerk/clerk-react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
@@ -15,6 +23,7 @@ import ListItem from "@mui/material/ListItem";
 import ListItemText from "@mui/material/ListItemText";
 import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemButton from "@mui/material/ListItemButton";
+import Button from "@mui/material/Button";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -25,6 +34,9 @@ import AddCircleOutlineSharpIcon from "@mui/icons-material/AddCircleOutlineSharp
 import FundingBoardIcon from "@mui/icons-material/DeveloperBoard";
 import ExpandLess from "@mui/icons-material/ExpandLess";
 import ExpandMore from "@mui/icons-material/ExpandMore";
+import EditIcon from "@mui/icons-material/Edit";
+import CancelIcon from "@mui/icons-material/Cancel";
+import CheckIcon from "@mui/icons-material/Check";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -34,9 +46,14 @@ import TableHead from "@mui/material/TableHead";
 import TablePagination from "@mui/material/TablePagination";
 import TableRow from "@mui/material/TableRow";
 import Collapse from "@mui/material/Collapse";
+import IconButton from "@mui/material/IconButton";
 import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
 import StringField from "@dvargas92495/ui/dist/components/StringField";
 import NumberField from "@dvargas92495/ui/dist/components/NumberField";
+import H1 from "@dvargas92495/ui/dist/components/H1";
+import FilledInput from "@mui/material/FilledInput";
+import InputAdornment from "@mui/material/InputAdornment";
+import GlobalStyles from "@mui/material/GlobalStyles";
 
 type FundingBoardProject = {
   uuid: string;
@@ -65,8 +82,67 @@ const columns: readonly Column[] = [
   },
 ];
 
+const EditableHeader = ({
+  text,
+  onSave,
+}: {
+  text: string;
+  onSave: (s: string) => Promise<unknown>;
+}) => {
+  const [shown, setShown] = useState(false);
+  const show = useCallback(() => setShown(true), [setShown]);
+  const hide = useCallback(() => setShown(false), [setShown]);
+  const [editing, setEditing] = useState(false);
+  const edit = useCallback(() => setEditing(true), [setShown]);
+  const view = useCallback(() => setEditing(false), [setShown]);
+  const [value, setValue] = useState(text);
+  return editing ? (
+    <FilledInput
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      endAdornment={
+        <InputAdornment position="end">
+          <IconButton onClick={() => onSave(value).then(view)}>
+            <CheckIcon />
+          </IconButton>
+          <IconButton
+            onClick={() => {
+              setValue(text);
+              view();
+            }}
+          >
+            <CancelIcon />
+          </IconButton>
+        </InputAdornment>
+      }
+    />
+  ) : (
+    <H1
+      onMouseEnter={show}
+      onMouseMove={shown ? undefined : show}
+      onMouseLeave={hide}
+      sx={{
+        pr: 8,
+        display: "flex",
+        alignItems: "center",
+      }}
+    >
+      {text}
+      {shown && (
+        <IconButton onClick={edit} sx={{ ml: 2 }}>
+          <EditIcon />
+        </IconButton>
+      )}
+    </H1>
+  );
+};
+
 type TabItem = { text: string; id: string };
-const FundingBoardTabContent = ({ id, text }: TabItem) => {
+const FundingBoardTabContent = ({
+  id,
+  text,
+  onTextChange,
+}: TabItem & { onTextChange: (s: string) => void }) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [rows, setRows] = React.useState<FundingBoardProject[]>([]);
@@ -77,6 +153,10 @@ const FundingBoardTabContent = ({ id, text }: TabItem) => {
   const postFundingBoardProject = useAuthenticatedHandler<PostLinkHandler>({
     method: "POST",
     path: "funding-board-project",
+  });
+  const putFundingBoard = useAuthenticatedHandler<PutHandler>({
+    method: "PUT",
+    path: "funding-board",
   });
 
   const handleChangePage = useCallback(
@@ -114,33 +194,40 @@ const FundingBoardTabContent = ({ id, text }: TabItem) => {
         display={"flex"}
         justifyContent={"space-between"}
         alignItems={"center"}
+        sx={{ height: "152px" }}
       >
-        <h1>{text}</h1>
+        <EditableHeader
+          text={text}
+          onSave={(name) =>
+            putFundingBoard({ name, uuid: id }).then((r) => {
+              if (r.success) {
+                onTextChange(name);
+              }
+            })
+          }
+        />
         <FormDialog<Omit<Parameters<PostLinkHandler>[0], "user" | "board">>
           title={"New Funding Board Project"}
-          buttonText={
-            <>
-              <AddIcon /> New
-            </>
-          }
+          buttonText={"New"}
+          Button={(props) => <Button {...props} startIcon={<AddIcon />} />}
           formElements={{
             name: {
-              defaultValue: '',
+              defaultValue: "",
               order: 0,
               component: StringField,
-              validate: (s) => !!s ? '' : "`name` is required"
+              validate: (s) => (!!s ? "" : "`name` is required"),
             },
             link: {
-              defaultValue: '',
+              defaultValue: "",
               order: 1,
               component: StringField,
-              validate: () => ''
+              validate: () => "",
             },
             target: {
               defaultValue: 100,
               order: 2,
               component: NumberField,
-              validate: (n) => n > 0 ? '' : "`target` must be greater than 0"
+              validate: (n) => (n > 0 ? "" : "`target` must be greater than 0"),
             },
           }}
           onSave={(body) =>
@@ -148,59 +235,66 @@ const FundingBoardTabContent = ({ id, text }: TabItem) => {
           }
         />
       </Box>
-      <Paper sx={{ width: "100%", overflow: "hidden" }}>
-        <TableContainer sx={{ maxHeight: 440 }}>
-          <Table stickyHeader aria-label="sticky table">
-            <TableHead>
-              <TableRow>
-                {columns.map((column) => (
-                  <TableCell
-                    key={column.id}
-                    align={column.align}
-                    style={{ minWidth: column.minWidth }}
-                  >
-                    {column.label}
-                  </TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((row) => {
-                  return (
-                    <TableRow
-                      hover
-                      role="checkbox"
-                      tabIndex={-1}
-                      key={row.uuid}
+      <Box flexGrow={1}>
+        <Paper sx={{ width: "100%", overflow: "hidden" }}>
+          <TableContainer sx={{ maxHeight: 440 }}>
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{ minWidth: column.minWidth }}
                     >
-                      {columns.map((column) => {
-                        const value = row[column.id];
-                        return (
-                          <TableCell key={column.id} align={column.align}>
-                            {column.format && typeof value === "number"
-                              ? column.format(value)
-                              : value}
-                          </TableCell>
-                        );
-                      })}
-                    </TableRow>
-                  );
-                })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 100]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+                      {column.label}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => {
+                    return (
+                      <TableRow
+                        hover
+                        role="checkbox"
+                        tabIndex={-1}
+                        key={row.uuid}
+                      >
+                        {columns.map((column) => {
+                          const value = row[column.id];
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              {column.format && typeof value === "number"
+                                ? column.format(value)
+                                : value}
+                            </TableCell>
+                          );
+                        })}
+                      </TableRow>
+                    );
+                  })}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <TablePagination
+            rowsPerPageOptions={[10, 25, 100]}
+            component="div"
+            count={rows.length}
+            rowsPerPage={rowsPerPage}
+            page={page}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Paper>
+      </Box>
+      <Box sx={{ minHeight: "64px" }}>
+        <Button color={"error"} variant={"contained"}>
+          Delete
+        </Button>
+      </Box>
     </>
   );
 };
@@ -215,6 +309,8 @@ const TABS = [
     nested: true,
   },
 ] as const;
+type TabText = typeof TABS[number]["text"];
+type RefreshRef = Record<TabText, () => Promise<unknown>>;
 
 const NestedTab = ({
   getItems,
@@ -222,18 +318,24 @@ const NestedTab = ({
   Icon,
   setTab,
   newItem,
+  refreshRef,
 }: {
   getItems: () => Promise<TabItem[]>;
   newItem: (p: { name: string }) => Promise<TabItem>;
-  text: string;
+  text: TabText;
   Icon: typeof StarBorderIcon;
   setTab: (i: TabItem) => void;
+  refreshRef: MutableRefObject<RefreshRef>;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [items, setItems] = useState<TabItem[]>([]);
+  refreshRef.current[text] = useCallback(
+    () => getItems().then(setItems),
+    [getItems, setItems]
+  );
   useEffect(() => {
-    getItems().then(setItems);
-  }, [getItems, setItems]);
+    refreshRef.current[text]();
+  }, [refreshRef, text]);
   return (
     <>
       <ListItemButton onClick={() => setIsOpen(!isOpen)}>
@@ -273,12 +375,12 @@ const NestedTab = ({
               },
             }}
             buttonText={"Create"}
-            Button={({ onClick, buttonText }) => (
+            Button={({ onClick, children }) => (
               <ListItemButton sx={{ pl: 4 }} onClick={onClick}>
                 <ListItemIcon sx={{ color: "inherit" }}>
                   <AddCircleOutlineSharpIcon />
                 </ListItemIcon>
-                <ListItemText primary={buttonText} />
+                <ListItemText primary={children} />
               </ListItemButton>
             )}
           />
@@ -294,7 +396,10 @@ type NestedTabRecord<T> = {
 const Dashboard = () => {
   const user = useUser();
   const [tab, setTab] = useState(0);
-  const [nestedTab, setNestedTab] = useState<TabItem>();
+  const [nestedTab, setNestedTab] = useState<TabItem>({
+    id: "Home",
+    text: "Home",
+  });
   const TabContent = TABS[tab].content;
   const getFundingBoards = useAuthenticatedHandler<GetHandler>({
     method: "GET",
@@ -330,8 +435,11 @@ const Dashboard = () => {
     }),
     [postFundingBoard]
   );
+  const refreshRef = useRef<RefreshRef>(
+    Object.fromEntries(TABS.map((t) => [t.text, () => Promise.resolve()])) as RefreshRef
+  );
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box sx={{ display: "flex", height: "100%" }}>
       <AppBar
         position="fixed"
         sx={{
@@ -380,6 +488,7 @@ const Dashboard = () => {
                 }}
                 getItems={getItemsByTab[text as keyof typeof getItemsByTab]}
                 newItem={newItemByTab[text as keyof typeof newItemByTab]}
+                refreshRef={refreshRef}
               />
             ) : (
               <ListItem
@@ -387,7 +496,10 @@ const Dashboard = () => {
                 key={index}
                 onClick={() => {
                   setTab(index);
-                  setNestedTab(undefined);
+                  setNestedTab({
+                    id: TABS[index].text,
+                    text: TABS[index].text,
+                  });
                 }}
                 sx={{ display: "flex" }}
               >
@@ -408,16 +520,37 @@ const Dashboard = () => {
           p: 3,
           color: "text.primary",
         }}
+        flexDirection={"column"}
+        display={"flex"}
       >
         <Toolbar />
-        <TabContent {...(nestedTab || { id: "Home", text: "Home" })} />
+        <Box flexGrow={1} display={"flex"} flexDirection={"column"}>
+          <TabContent
+            {...nestedTab}
+            onTextChange={(text) => {
+              setNestedTab({ ...nestedTab, text });
+              refreshRef.current[TABS[tab].text]();
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   );
 };
 
+const globalStyles = (
+  <GlobalStyles
+    styles={{
+      html: { height: "100%" },
+      body: { height: "100%" },
+      "body > div": { height: "100%" },
+    }}
+  />
+);
+
 const DashboardPage: React.FunctionComponent = () => (
   <Document>
+    {globalStyles}
     <SignedIn>
       <Dashboard />
     </SignedIn>
