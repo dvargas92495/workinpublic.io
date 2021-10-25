@@ -1,24 +1,15 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
+import {
+  BadRequestError,
+  NotFoundError,
+  ForbiddenError,
+} from "aws-sdk-plus/dist/errors";
 import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
 import Project from "../../db/project";
-
-class UserError extends Error {
-  constructor(arg: string) {
-    super(arg);
-  }
-  readonly code = 400;
-}
-
-class UnauthorizedError extends Error {
-  constructor(arg: string) {
-    super(arg);
-  }
-  readonly code = 401;
-}
 
 const logic = ({
   board,
@@ -33,13 +24,13 @@ const logic = ({
   target: number;
   user: { id: string };
 }) => {
-  if (!name) throw new UserError("`name` is required");
+  if (!name) throw new BadRequestError("`name` is required");
   return connectTypeorm([FundingBoard, FundingBoardProject, Project])
     .then(() => getRepository(FundingBoard).findOne({ uuid: board }))
     .then((result) => {
-      if (!result) throw new UserError(`Could not find Funding Board ${board}`);
+      if (!result) throw new NotFoundError(`Could not find Funding Board ${board}`);
       if (result.user_id !== user_id)
-        throw new UnauthorizedError(
+        throw new ForbiddenError(
           `User is not authorized to add project to Funding Board ${board}`
         );
       return getRepository(Project)

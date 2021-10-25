@@ -1,6 +1,6 @@
 import { EntitySchema } from "typeorm";
 
-type Project = {
+export type ProjectSchema = {
   uuid: string;
   name: string;
   link: string;
@@ -8,7 +8,7 @@ type Project = {
   target: number;
 };
 
-export default new EntitySchema<Project>({
+export default new EntitySchema<ProjectSchema>({
   name: "projects",
   columns: {
     uuid: {

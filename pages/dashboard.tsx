@@ -15,6 +15,9 @@ import type { Handler as GetLinkHandler } from "../functions/funding-board-proje
 import type { Handler as PostHandler } from "../functions/funding-board/post";
 import type { Handler as PostLinkHandler } from "../functions/funding-board-project/post";
 import type { Handler as PutHandler } from "../functions/funding-board/put";
+import type { Handler as DeleteHandler } from "../functions/funding-board/delete";
+import type { Handler as PutProjectHandler } from "../functions/project/put";
+import type { Handler as DeleteLinkHandler } from "../functions/funding-board-project/delete";
 import { SignedIn, useUser, UserButton } from "@clerk/clerk-react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
@@ -37,6 +40,7 @@ import ExpandMore from "@mui/icons-material/ExpandMore";
 import EditIcon from "@mui/icons-material/Edit";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
+import DeleteIcon from "@mui/icons-material/Delete";
 import Paper from "@mui/material/Paper";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
@@ -50,6 +54,7 @@ import IconButton from "@mui/material/IconButton";
 import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
 import StringField from "@dvargas92495/ui/dist/components/StringField";
 import NumberField from "@dvargas92495/ui/dist/components/NumberField";
+import ConfirmationDialog from "@dvargas92495/ui/dist/components/ConfirmationDialog";
 import H1 from "@dvargas92495/ui/dist/components/H1";
 import FilledInput from "@mui/material/FilledInput";
 import InputAdornment from "@mui/material/InputAdornment";
@@ -57,6 +62,7 @@ import GlobalStyles from "@mui/material/GlobalStyles";
 
 type FundingBoardProject = {
   uuid: string;
+  linkUuid: string;
   name: string;
   link: string;
   target: number;
@@ -67,18 +73,20 @@ type Column = {
   label: string;
   minWidth?: number;
   align?: "right";
-  format?: (value: number) => string;
 };
 
 const columns: readonly Column[] = [
-  { id: "name", label: "Name", minWidth: 170 },
+  {
+    id: "name",
+    label: "Name",
+    minWidth: 170,
+  },
   { id: "link", label: "Description Link", minWidth: 240 },
   {
     id: "target",
     label: "Funding Target",
     minWidth: 120,
     align: "right",
-    format: (value: number) => `$${value}`,
   },
 ];
 
@@ -142,7 +150,11 @@ const FundingBoardTabContent = ({
   id,
   text,
   onTextChange,
-}: TabItem & { onTextChange: (s: string) => void }) => {
+  onTabDelete,
+}: TabItem & {
+  onTextChange: (s: string) => void;
+  onTabDelete: () => void;
+}) => {
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [rows, setRows] = React.useState<FundingBoardProject[]>([]);
@@ -157,6 +169,18 @@ const FundingBoardTabContent = ({
   const putFundingBoard = useAuthenticatedHandler<PutHandler>({
     method: "PUT",
     path: "funding-board",
+  });
+  const deleteFundingBoard = useAuthenticatedHandler<DeleteHandler>({
+    method: "DELETE",
+    path: "funding-board",
+  });
+  const putProject = useAuthenticatedHandler<PutProjectHandler>({
+    method: "PUT",
+    path: "project",
+  });
+  const deleteFundingBoardProject = useAuthenticatedHandler<DeleteLinkHandler>({
+    method: "DELETE",
+    path: "funding-board-project",
   });
 
   const handleChangePage = useCallback(
@@ -183,6 +207,70 @@ const FundingBoardTabContent = ({
         setRows(r.fundingBoardProjects);
       }),
     [id, page, rowsPerPage, setRows]
+  );
+  type ProjectBody = Omit<Parameters<PutProjectHandler>[0], "user" | "uuid">;
+  const formatByColumnId: Record<
+    Exclude<keyof FundingBoardProject, "uuid" | "linkUuid">,
+    (value: string | number, p: FundingBoardProject, rows: FundingBoardProject[]) => React.ReactNode
+  > = useMemo(
+    () =>
+      ({
+        name: (value, p, rows) => (
+          <FormDialog<Required<ProjectBody>>
+            title={`Edit Project: ${value}`}
+            formElements={{
+              name: {
+                defaultValue: value as string,
+                order: 0,
+                component: StringField,
+                validate: (s) => (!!s ? "" : "`name` is required"),
+              },
+              link: {
+                defaultValue: p.link,
+                order: 1,
+                component: StringField,
+                validate: () => "",
+              },
+              target: {
+                defaultValue: p.target,
+                order: 2,
+                component: NumberField,
+                validate: (n) =>
+                  n > 0 ? "" : "`target` must be greater than 0",
+              },
+            }}
+            buttonText={value}
+            Button={({ onClick, children }) => (
+              <Box
+                component={"span"}
+                sx={{ cursor: "pointer" }}
+                onClick={onClick}
+              >
+                {children}
+              </Box>
+            )}
+            onSave={(body) => {
+              const diffBody = Object.fromEntries(
+                Object.entries(body).filter(
+                  ([k, v]) => p[k as keyof typeof body] !== v
+                )
+              ) as Partial<ProjectBody>;
+              return putProject({ ...diffBody, uuid: p.uuid }).then(
+                (r) =>
+                  r.success &&
+                  setRows(
+                    rows.map((row) =>
+                      row.uuid === p.uuid ? { ...row, ...diffBody } : row
+                    )
+                  )
+              );
+            }}
+          />
+        ),
+        link: (value) => value,
+        target: (value) => `$${value}`,
+      } as const),
+    [putProject]
   );
   useEffect(() => {
     refresh();
@@ -250,6 +338,7 @@ const FundingBoardTabContent = ({
                       {column.label}
                     </TableCell>
                   ))}
+                  <TableCell />
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -267,12 +356,32 @@ const FundingBoardTabContent = ({
                           const value = row[column.id];
                           return (
                             <TableCell key={column.id} align={column.align}>
-                              {column.format && typeof value === "number"
-                                ? column.format(value)
-                                : value}
+                              {formatByColumnId[
+                                column.id as keyof typeof formatByColumnId
+                              ](value, row, rows)}
                             </TableCell>
                           );
                         })}
+                        <TableCell>
+                          <ConfirmationDialog
+                            content={
+                              "Are you sure you want to remove this project from this funding board?"
+                            }
+                            color={"error"}
+                            title={`Remove ${row.name} Project`}
+                            action={() =>
+                              deleteFundingBoardProject({ uuid: row.linkUuid }).then(
+                                (r) =>
+                                  r.success &&
+                                  setRows(
+                                    rows.filter((rw) => rw.uuid !== row.uuid)
+                                  )
+                              )
+                            }
+                            buttonText={<DeleteIcon />}
+                            Button={IconButton}
+                          />
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -291,9 +400,13 @@ const FundingBoardTabContent = ({
         </Paper>
       </Box>
       <Box sx={{ minHeight: "64px" }}>
-        <Button color={"error"} variant={"contained"}>
-          Delete
-        </Button>
+        <ConfirmationDialog
+          content={"Are you sure you want to delete this funding board?"}
+          buttonText={"Delete"}
+          color={"error"}
+          title={`Delete ${text} Funding Board`}
+          action={() => deleteFundingBoard({ uuid: id }).then(onTabDelete)}
+        />
       </Box>
     </>
   );
@@ -436,7 +549,9 @@ const Dashboard = () => {
     [postFundingBoard]
   );
   const refreshRef = useRef<RefreshRef>(
-    Object.fromEntries(TABS.map((t) => [t.text, () => Promise.resolve()])) as RefreshRef
+    Object.fromEntries(
+      TABS.map((t) => [t.text, () => Promise.resolve()])
+    ) as RefreshRef
   );
   return (
     <Box sx={{ display: "flex", height: "100%" }}>
@@ -531,6 +646,7 @@ const Dashboard = () => {
               setNestedTab({ ...nestedTab, text });
               refreshRef.current[TABS[tab].text]();
             }}
+            onTabDelete={refreshRef.current[TABS[tab].text]}
           />
         </Box>
       </Box>
@@ -543,7 +659,7 @@ const globalStyles = (
     styles={{
       html: { height: "100%" },
       body: { height: "100%" },
-      "body > div": { height: "100%" },
+      "body > div[data-reactroot]": { height: "100%" },
     }}
   />
 );

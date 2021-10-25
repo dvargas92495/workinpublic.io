@@ -33,8 +33,8 @@
   },
   "dependencies": {
     "@dvargas92495/api": "^0.2.0",
-    "@dvargas92495/ui": "^0.41.0",
-    "aws-sdk-plus": "^0.2.1",
+    "@dvargas92495/ui": "^0.41.4",
+    "aws-sdk-plus": "^0.3.1",
     "axios": "^0.23.0"
   }
 }

@@ -1,12 +1,12 @@
 import { EntitySchema } from "typeorm";
 
-type FundingBoard = {
+export type FundingBoardSchema = {
   uuid: string;
   name: string;
   user_id: string;
 };
 
-export default new EntitySchema<FundingBoard>({
+export default new EntitySchema<FundingBoardSchema>({
   name: "funding_boards",
   columns: {
     uuid: {

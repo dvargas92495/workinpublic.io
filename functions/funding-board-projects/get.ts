@@ -4,7 +4,7 @@ import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { getRepository } from "typeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard from "../../db/funding_board";
-import Project from "../../db/project";
+import Project, { ProjectSchema } from "../../db/project";
 
 const logic = ({
   board,
@@ -25,9 +25,10 @@ const logic = ({
       })
     )
     .then((fundingBoardProjects) => ({
-      fundingBoardProjects: fundingBoardProjects.map(
-        ({ project: { user_id, ...rest } }) => rest
-      ),
+      fundingBoardProjects: fundingBoardProjects.map(({ project, uuid }) => {
+        const { user_id, ...rest } = project as ProjectSchema;
+        return { ...rest, linkUuid: uuid };
+      }),
     }));
 
 export const handler = clerkAuthenticateLambda(
