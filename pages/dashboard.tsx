@@ -18,6 +18,8 @@ import type { Handler as PutHandler } from "../functions/funding-board/put";
 import type { Handler as DeleteHandler } from "../functions/funding-board/delete";
 import type { Handler as PutProjectHandler } from "../functions/project/put";
 import type { Handler as DeleteLinkHandler } from "../functions/funding-board-project/delete";
+import type { Handler as GetStripeHandler } from "../functions/stripe/get";
+import type { Handler as StripeHandler } from "../functions/stripe/post";
 import { SignedIn, useUser, UserButton } from "@clerk/clerk-react";
 import Drawer from "@mui/material/Drawer";
 import Box from "@mui/material/Box";
@@ -30,6 +32,7 @@ import Button from "@mui/material/Button";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
+import Link from "@mui/material/Link";
 import HomeIcon from "@mui/icons-material/Home";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AddIcon from "@mui/icons-material/Add";
@@ -42,6 +45,8 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import Paper from "@mui/material/Paper";
+import Skeleton from "@mui/material/Skeleton";
+import Card from "@dvargas92495/ui/dist/components/Card";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -58,7 +63,126 @@ import ConfirmationDialog from "@dvargas92495/ui/dist/components/ConfirmationDia
 import H1 from "@dvargas92495/ui/dist/components/H1";
 import FilledInput from "@mui/material/FilledInput";
 import InputAdornment from "@mui/material/InputAdornment";
+import CircularProgress from "@mui/material/CircularProgress";
 import GlobalStyles from "@mui/material/GlobalStyles";
+
+const HomeContent = () => {
+  const [mounted, setMounted] = useState(false);
+  const [connected, setConnected] = useState<boolean | "redirecting">(false);
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [error, setError] = useState("");
+  const getStripe = useAuthenticatedHandler<GetStripeHandler>({
+    method: "GET",
+    path: "stripe",
+  });
+  const postStripe = useAuthenticatedHandler<StripeHandler>({
+    method: "POST",
+    path: "stripe",
+  });
+  const stripeConnectOnClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (stripeLoading) {
+        return;
+      }
+      setError("");
+      setStripeLoading(true);
+      postStripe()
+        .then((r) => {
+          window.location.assign(r.url);
+        })
+        .catch((e) => {
+          setError(e.response?.data || e.message);
+          setStripeLoading(false);
+        });
+    },
+    [setStripeLoading, setError, stripeLoading, postStripe]
+  );
+  useEffect(() => {
+    const params = Object.fromEntries(
+      new URLSearchParams(window.location.search).entries()
+    ) as Omit<Parameters<GetStripeHandler>[0], "user">;
+    getStripe(params).then((r) => {
+      setMounted(true);
+      setConnected(r.connected);
+      if (r.url) {
+        window.location.assign(r.url);
+      }
+    });
+  }, [setMounted, getStripe]);
+  return (
+    <>
+      <H1>Home</H1>
+      <Card title={"Connected Bank"}>
+        {mounted ? (
+          <Box display={"flex"} alignItems={"center"}>
+            {connected === 'redirecting' ? <span>Redirecting...</span> : connected ? (
+              <span>Connected!</span>
+            ) : (
+              <Link
+                href="#"
+                sx={{
+                  ...(stripeLoading
+                    ? {
+                        background: "#7a73ff",
+                        cursor: "not-allowed",
+                      }
+                    : { background: "#635bff" }),
+                  display: "inline-block",
+                  height: "38px",
+                  textDecoration: "none",
+                  width: "180px",
+                  borderRadius: "4px",
+                  userSelect: "none",
+                  marginRight: "16px",
+                  ":hover": {
+                    background: "#7a73ff",
+                  },
+                }}
+                onClick={stripeConnectOnClick}
+              >
+                <Box
+                  component="span"
+                  sx={{
+                    color: "#ffffff",
+                    display: "block",
+                    fontFamily:
+                      'sohne-var, "Helvetica Neue", Arial, sans-serif',
+                    fontSize: "15px",
+                    fontWeight: "400",
+                    lineHeight: "14px",
+                    padding: "11px 0px 0px 24px",
+                    position: "relative",
+                    textAlign: "left",
+                    "::after": {
+                      backgroundRepeat: "no-repeat",
+                      backgroundSize: "49.58px",
+                      content: '""',
+                      height: "20px",
+                      left: "62%",
+                      position: "absolute",
+                      top: "28.95%",
+                      width: "49.58px",
+                      backgroundImage: `url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='utf-8'%3F%3E%3C!-- Generator: Adobe Illustrator 23.0.4, SVG Export Plug-In . SVG Version: 6.00 Build 0) --%3E%3Csvg version='1.1' id='Layer_1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' x='0px' y='0px' viewBox='0 0 468 222.5' style='enable-background:new 0 0 468 222.5;' xml:space='preserve'%3E%3Cstyle type='text/css'%3E .st0%7Bfill-rule:evenodd;clip-rule:evenodd;fill:%23FFFFFF;%7D%0A%3C/style%3E%3Cg%3E%3Cpath class='st0' d='M414,113.4c0-25.6-12.4-45.8-36.1-45.8c-23.8,0-38.2,20.2-38.2,45.6c0,30.1,17,45.3,41.4,45.3 c11.9,0,20.9-2.7,27.7-6.5v-20c-6.8,3.4-14.6,5.5-24.5,5.5c-9.7,0-18.3-3.4-19.4-15.2h48.9C413.8,121,414,115.8,414,113.4z M364.6,103.9c0-11.3,6.9-16,13.2-16c6.1,0,12.6,4.7,12.6,16H364.6z'/%3E%3Cpath class='st0' d='M301.1,67.6c-9.8,0-16.1,4.6-19.6,7.8l-1.3-6.2h-22v116.6l25-5.3l0.1-28.3c3.6,2.6,8.9,6.3,17.7,6.3 c17.9,0,34.2-14.4,34.2-46.1C335.1,83.4,318.6,67.6,301.1,67.6z M295.1,136.5c-5.9,0-9.4-2.1-11.8-4.7l-0.1-37.1 c2.6-2.9,6.2-4.9,11.9-4.9c9.1,0,15.4,10.2,15.4,23.3C310.5,126.5,304.3,136.5,295.1,136.5z'/%3E%3Cpolygon class='st0' points='223.8,61.7 248.9,56.3 248.9,36 223.8,41.3 '/%3E%3Crect x='223.8' y='69.3' class='st0' width='25.1' height='87.5'/%3E%3Cpath class='st0' d='M196.9,76.7l-1.6-7.4h-21.6v87.5h25V97.5c5.9-7.7,15.9-6.3,19-5.2v-23C214.5,68.1,202.8,65.9,196.9,76.7z'/%3E%3Cpath class='st0' d='M146.9,47.6l-24.4,5.2l-0.1,80.1c0,14.8,11.1,25.7,25.9,25.7c8.2,0,14.2-1.5,17.5-3.3V135 c-3.2,1.3-19,5.9-19-8.9V90.6h19V69.3h-19L146.9,47.6z'/%3E%3Cpath class='st0' d='M79.3,94.7c0-3.9,3.2-5.4,8.5-5.4c7.6,0,17.2,2.3,24.8,6.4V72.2c-8.3-3.3-16.5-4.6-24.8-4.6 C67.5,67.6,54,78.2,54,95.9c0,27.6,38,23.2,38,35.1c0,4.6-4,6.1-9.6,6.1c-8.3,0-18.9-3.4-27.3-8v23.8c9.3,4,18.7,5.7,27.3,5.7 c20.8,0,35.1-10.3,35.1-28.2C117.4,100.6,79.3,105.9,79.3,94.7z'/%3E%3C/g%3E%3C/svg%3E")`,
+                    },
+                  }}
+                >
+                  Connect with
+                </Box>
+              </Link>
+            )}
+            {stripeLoading && <CircularProgress size={24} />}
+          </Box>
+        ) : (
+          <Skeleton variant={"rectangular"} />
+        )}
+        <Typography variant={"body2"} color={"error"}>
+          {error}
+        </Typography>
+      </Card>
+    </>
+  );
+};
 
 type FundingBoardProject = {
   uuid: string;
@@ -158,6 +282,7 @@ const FundingBoardTabContent = ({
   const [page, setPage] = React.useState(0);
   const [rowsPerPage, setRowsPerPage] = React.useState(10);
   const [rows, setRows] = React.useState<FundingBoardProject[]>([]);
+  const [loading, setLoading] = useState(false);
   const getFundingBoardProjects = useAuthenticatedHandler<GetLinkHandler>({
     method: "GET",
     path: "funding-board-projects",
@@ -197,21 +322,27 @@ const FundingBoardTabContent = ({
     },
     [setPage, setRowsPerPage]
   );
-  const refresh = useCallback(
-    () =>
-      getFundingBoardProjects({
-        board: id,
-        offset: page * rowsPerPage,
-        limit: rowsPerPage,
-      }).then((r) => {
+  const refresh = useCallback(() => {
+    setLoading(true);
+    return getFundingBoardProjects({
+      board: id,
+      offset: page * rowsPerPage,
+      limit: rowsPerPage,
+    })
+      .then((r) => {
         setRows(r.fundingBoardProjects);
-      }),
-    [id, page, rowsPerPage, setRows]
-  );
+      })
+      .catch(() => setRows([]))
+      .finally(() => setLoading(false));
+  }, [id, page, rowsPerPage, setRows, setLoading]);
   type ProjectBody = Omit<Parameters<PutProjectHandler>[0], "user" | "uuid">;
   const formatByColumnId: Record<
     Exclude<keyof FundingBoardProject, "uuid" | "linkUuid">,
-    (value: string | number, p: FundingBoardProject, rows: FundingBoardProject[]) => React.ReactNode
+    (
+      value: string | number,
+      p: FundingBoardProject,
+      rows: FundingBoardProject[]
+    ) => React.ReactNode
   > = useMemo(
     () =>
       ({
@@ -341,51 +472,57 @@ const FundingBoardTabContent = ({
                   <TableCell />
                 </TableRow>
               </TableHead>
-              <TableBody>
-                {rows
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((row) => {
-                    return (
-                      <TableRow
-                        hover
-                        role="checkbox"
-                        tabIndex={-1}
-                        key={row.uuid}
-                      >
-                        {columns.map((column) => {
-                          const value = row[column.id];
-                          return (
-                            <TableCell key={column.id} align={column.align}>
-                              {formatByColumnId[
-                                column.id as keyof typeof formatByColumnId
-                              ](value, row, rows)}
-                            </TableCell>
-                          );
-                        })}
-                        <TableCell>
-                          <ConfirmationDialog
-                            content={
-                              "Are you sure you want to remove this project from this funding board?"
-                            }
-                            color={"error"}
-                            title={`Remove ${row.name} Project`}
-                            action={() =>
-                              deleteFundingBoardProject({ uuid: row.linkUuid }).then(
-                                (r) =>
-                                  r.success &&
-                                  setRows(
-                                    rows.filter((rw) => rw.uuid !== row.uuid)
-                                  )
-                              )
-                            }
-                            buttonText={<DeleteIcon />}
-                            Button={IconButton}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-              </TableBody>
+              {loading ? (
+                <Skeleton variant="rectangular" />
+              ) : (
+                <TableBody>
+                  {rows
+                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                    .map((row) => {
+                      return (
+                        <TableRow
+                          hover
+                          role="checkbox"
+                          tabIndex={-1}
+                          key={row.uuid}
+                        >
+                          {columns.map((column) => {
+                            const value = row[column.id];
+                            return (
+                              <TableCell key={column.id} align={column.align}>
+                                {formatByColumnId[
+                                  column.id as keyof typeof formatByColumnId
+                                ](value, row, rows)}
+                              </TableCell>
+                            );
+                          })}
+                          <TableCell>
+                            <ConfirmationDialog
+                              content={
+                                "Are you sure you want to remove this project from this funding board?"
+                              }
+                              color={"error"}
+                              title={`Remove ${row.name} Project`}
+                              action={() =>
+                                deleteFundingBoardProject({
+                                  uuid: row.linkUuid,
+                                }).then(
+                                  (r) =>
+                                    r.success &&
+                                    setRows(
+                                      rows.filter((rw) => rw.uuid !== row.uuid)
+                                    )
+                                )
+                              }
+                              buttonText={<DeleteIcon />}
+                              Button={IconButton}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                </TableBody>
+              )}
             </Table>
           </TableContainer>
           <TablePagination
@@ -414,7 +551,7 @@ const FundingBoardTabContent = ({
 
 const DRAWER_WIDTH = 240;
 const TABS = [
-  { text: "Home", Icon: HomeIcon, content: () => <h1>Home</h1>, nested: false },
+  { text: "Home", Icon: HomeIcon, content: HomeContent, nested: false },
   {
     text: "Funding Board",
     Icon: FundingBoardIcon,

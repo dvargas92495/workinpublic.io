@@ -38,6 +38,14 @@ variable "mysql_password" {
   type = string
 }
 
+variable "stripe_public" {
+  type = string
+}
+
+variable "stripe_secret" {
+  type = string
+}
+
 provider "aws" {
   region = "us-east-1"
   access_key = var.aws_access_token
@@ -113,4 +121,16 @@ resource "github_actions_secret" "clerk_api_key" {
   repository       = "workinpublic.io"
   secret_name      = "CLERK_API_KEY"
   plaintext_value  = var.clerk_api_key
+}
+
+resource "github_actions_secret" "stripe_public" {
+  repository       = "workinpublic.io"
+  secret_name      = "STRIPE_PUBLIC_KEY"
+  plaintext_value  = var.stripe_public
+}
+
+resource "github_actions_secret" "stripe_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STRIPE_SECRET_KEY"
+  plaintext_value  = var.stripe_secret
 }
