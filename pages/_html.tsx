@@ -1,1 +1,1 @@
-export { transformHead } from "@dvargas92495/ui/dist/components/Document";
+export * from "@dvargas92495/ui/dist/components/FuegoRoot";

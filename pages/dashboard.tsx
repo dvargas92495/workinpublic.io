@@ -116,7 +116,9 @@ const HomeContent = () => {
       <Card title={"Connected Bank"}>
         {mounted ? (
           <Box display={"flex"} alignItems={"center"}>
-            {connected === 'redirecting' ? <span>Redirecting...</span> : connected ? (
+            {connected === "redirecting" ? (
+              <span>Redirecting...</span>
+            ) : connected ? (
               <span>Connected!</span>
             ) : (
               <Link
@@ -457,24 +459,24 @@ const FundingBoardTabContent = ({
       <Box flexGrow={1}>
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <TableContainer sx={{ maxHeight: 440 }}>
-            <Table stickyHeader aria-label="sticky table">
-              <TableHead>
-                <TableRow>
-                  {columns.map((column) => (
-                    <TableCell
-                      key={column.id}
-                      align={column.align}
-                      style={{ minWidth: column.minWidth }}
-                    >
-                      {column.label}
-                    </TableCell>
-                  ))}
-                  <TableCell />
-                </TableRow>
-              </TableHead>
-              {loading ? (
-                <Skeleton variant="rectangular" />
-              ) : (
+            {loading ? (
+              <Skeleton variant="rectangular" />
+            ) : (
+              <Table stickyHeader aria-label="sticky table">
+                <TableHead>
+                  <TableRow>
+                    {columns.map((column) => (
+                      <TableCell
+                        key={column.id}
+                        align={column.align}
+                        style={{ minWidth: column.minWidth }}
+                      >
+                        {column.label}
+                      </TableCell>
+                    ))}
+                    <TableCell />
+                  </TableRow>
+                </TableHead>
                 <TableBody>
                   {rows
                     .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
@@ -522,8 +524,8 @@ const FundingBoardTabContent = ({
                       );
                     })}
                 </TableBody>
-              )}
-            </Table>
+              </Table>
+            )}
           </TableContainer>
           <TablePagination
             rowsPerPageOptions={[10, 25, 100]}
