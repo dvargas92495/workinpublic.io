@@ -134,3 +134,9 @@ resource "github_actions_secret" "stripe_secret" {
   secret_name      = "STRIPE_SECRET_KEY"
   plaintext_value  = var.stripe_secret
 }
+
+resource "github_actions_secret" "github_token" {
+  repository       = "workinpublic.io"
+  secret_name      = "PERSONAL_TOKEN"
+  plaintext_value  = var.github_token
+}
