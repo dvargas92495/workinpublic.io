@@ -3,6 +3,7 @@ import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLam
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
+import { invokeBuildBoardPage } from "../_common";
 
 const logic = ({
   name,
@@ -17,9 +18,12 @@ const logic = ({
     .then(() =>
       getRepository(FundingBoard).update({ uuid, user_id: id }, { name })
     )
-    .then((result) => ({
-      success: !!result.affected,
-    }));
+    .then((result) => {
+      invokeBuildBoardPage(uuid);
+      return {
+        success: !!result.affected,
+      };
+    });
 
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)

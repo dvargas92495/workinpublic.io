@@ -44,6 +44,7 @@ import EditIcon from "@mui/icons-material/Edit";
 import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
+import ShareIcon from "@mui/icons-material/Share";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Card from "@dvargas92495/ui/dist/components/Card";
@@ -458,6 +459,17 @@ const FundingBoardTabContent = ({
       </Box>
       <Box flexGrow={1}>
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
+          <div>
+            <IconButton
+              onClick={() =>
+                window.navigator.clipboard.writeText(
+                  `${window.location.origin}/board/${id}`
+                )
+              }
+            >
+              <ShareIcon />
+            </IconButton>
+          </div>
           <TableContainer sx={{ maxHeight: 440 }}>
             {loading ? (
               <Skeleton variant="rectangular" />
@@ -785,7 +797,10 @@ const Dashboard = () => {
               setNestedTab({ ...nestedTab, text });
               refreshRef.current[TABS[tab].text]();
             }}
-            onTabDelete={refreshRef.current[TABS[tab].text]}
+            onTabDelete={() => {
+              setTab(0);
+              refreshRef.current[TABS[tab].text]();
+            }}
           />
         </Box>
       </Box>

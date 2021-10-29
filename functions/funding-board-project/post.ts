@@ -10,6 +10,7 @@ import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
 import Project from "../../db/project";
+import { invokeBuildBoardPage } from "../_common";
 
 const logic = ({
   board,
@@ -28,7 +29,8 @@ const logic = ({
   return connectTypeorm([FundingBoard, FundingBoardProject, Project])
     .then(() => getRepository(FundingBoard).findOne({ uuid: board }))
     .then((result) => {
-      if (!result) throw new NotFoundError(`Could not find Funding Board ${board}`);
+      if (!result)
+        throw new NotFoundError(`Could not find Funding Board ${board}`);
       if (result.user_id !== user_id)
         throw new ForbiddenError(
           `User is not authorized to add project to Funding Board ${board}`
@@ -42,7 +44,10 @@ const logic = ({
           })
         );
     })
-    .then(() => ({ success: true }));
+    .then(() => {
+      invokeBuildBoardPage(board);
+      return { success: true };
+    });
 };
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)

@@ -3,6 +3,7 @@ import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLam
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
+import { invokeBuildBoardPage } from "../_common";
 
 class UserError extends Error {
   constructor(arg: string) {
@@ -21,9 +22,11 @@ const logic = ({
   if (!name) throw new UserError("`name` is required");
   return connectTypeorm([FundingBoard])
     .then(() => getRepository(FundingBoard).insert({ name, user_id: id }))
-    .then((result) => ({
-      uuid: result.identifiers[0].uuid as string,
-    }));
+    .then((result) => result.identifiers[0].uuid as string)
+    .then((uuid) => {
+      invokeBuildBoardPage(uuid);
+      return { uuid };
+    });
 };
 
 export const handler = clerkAuthenticateLambda(
