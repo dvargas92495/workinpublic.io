@@ -28,7 +28,8 @@ export const invokeAsync =
         data: T;
       }) => axios.post(`${process.env.API_URL}/${path}`, data);
 
-export const invokeBuildBoardPage = (uuid: string) => invokeAsync<Parameters<AsyncHandler>[0]>({
-  path: "build-board-page",
-  data: {uuid},
-});
+export const invokeBuildBoardPage = (uuid: string) =>
+  invokeAsync<Parameters<AsyncHandler>[0]>({
+    path: "build-board-page",
+    data: { uuid },
+  });
