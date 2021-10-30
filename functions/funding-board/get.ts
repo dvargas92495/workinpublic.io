@@ -27,8 +27,8 @@ const logic = ({
       ])
     )
     .then(([board, fundingBoardProjects]) => ({
-      name: board.name,
-      projects: fundingBoardProjects.map(({ project, uuid }) => {
+      name: board?.name,
+      projects: fundingBoardProjects.map(({ project }) => {
         const { user_id, ...rest } = project as ProjectSchema;
         return rest;
       }),
