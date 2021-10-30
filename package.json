@@ -24,7 +24,7 @@
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "eslint": "^8.0.1",
-    "fuegojs": "^0.14.4",
+    "fuegojs": "^0.14.5",
     "prettier": "^2.4.1",
     "ts-node": "^10.3.0",
     "tslint-config-prettier": "^1.18.0",
