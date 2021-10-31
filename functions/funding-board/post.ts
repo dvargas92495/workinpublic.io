@@ -23,10 +23,7 @@ const logic = ({
   return connectTypeorm([FundingBoard])
     .then(() => getRepository(FundingBoard).insert({ name, user_id: id }))
     .then((result) => result.identifiers[0].uuid as string)
-    .then((uuid) => {
-      invokeBuildBoardPage(uuid);
-      return { uuid };
-    });
+    .then((uuid) => invokeBuildBoardPage(uuid).then(() => ({ uuid })));
 };
 
 export const handler = clerkAuthenticateLambda(

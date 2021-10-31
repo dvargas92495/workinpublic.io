@@ -44,10 +44,7 @@ const logic = ({
           })
         );
     })
-    .then(() => {
-      invokeBuildBoardPage(board);
-      return { success: true };
-    });
+    .then(() => invokeBuildBoardPage(board).then(() => ({ success: true })));
 };
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)

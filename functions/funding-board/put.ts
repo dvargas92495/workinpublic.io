@@ -18,12 +18,11 @@ const logic = ({
     .then(() =>
       getRepository(FundingBoard).update({ uuid, user_id: id }, { name })
     )
-    .then((result) => {
-      invokeBuildBoardPage(uuid);
-      return {
+    .then((result) =>
+      invokeBuildBoardPage(uuid).then(() => ({
         success: !!result.affected,
-      };
-    });
+      }))
+    );
 
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)
