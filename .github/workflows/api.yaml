@@ -15,6 +15,7 @@ env:
   AWS_REGION: us-east-1
   CLERK_API_KEY: ${{ secrets.CLERK_API_KEY }}
   CLERK_FRONTEND_API: clerk.workinpublic.io
+  FE_DIR_PREFIX: /tmp
   HOST: https://workinpublic.io
   STRIPE_SECRET_KEY: \${{ secrets.STRIPE_SECRET_KEY }}
   TYPEORM_CONNECTION: mysql
