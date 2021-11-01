@@ -20,13 +20,14 @@ export const invokeAsync =
             Payload: JSON.stringify(data),
           })
           .promise()
+          .then(() => true)
     : <T extends Record<string, string>>({
         path,
         data,
       }: {
         path: string;
         data: T;
-      }) => axios.post(`${process.env.API_URL}/${path}`, data);
+      }) => axios.post(`${process.env.API_URL}/${path}`, data).then(() => true);
 
 export const invokeBuildBoardPage = (uuid: string) =>
   invokeAsync<Parameters<AsyncHandler>[0]>({

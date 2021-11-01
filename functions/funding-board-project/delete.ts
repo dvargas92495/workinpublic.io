@@ -6,6 +6,7 @@ import { getRepository } from "typeorm";
 import FundingBoard, { FundingBoardSchema } from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
 import FundingBoardProject from "../../db/funding_board_project";
+import { invokeBuildBoardPage } from "../_common";
 
 const logic = ({
   uuid,
@@ -35,6 +36,7 @@ const logic = ({
 
           return fbrRepo
             .delete(uuid)
+            .then(() => invokeBuildBoardPage(board.uuid))
             .then(() => (r.project as ProjectSchema).uuid);
         })
         .then((projectUuid) =>
