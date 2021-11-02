@@ -2,12 +2,7 @@ import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLam
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import { users, User } from "@clerk/clerk-sdk-node";
 import { ConflictError, InternalServorError } from "aws-sdk-plus/dist/errors";
-import Stripe from "stripe";
-
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2020-08-27",
-  maxNetworkRetries: 3,
-});
+import { stripe } from "../_common";
 
 const logic = ({
   user: { id, privateMetadata, emailAddresses, primaryEmailAddressId },

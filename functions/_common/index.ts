@@ -1,6 +1,12 @@
 import AWS from "aws-sdk";
 import axios from "axios";
 import type { Handler as AsyncHandler } from "../build-board-page";
+import Stripe from "stripe";
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+  apiVersion: "2020-08-27",
+  maxNetworkRetries: 3,
+});
 
 const lambda = new AWS.Lambda();
 

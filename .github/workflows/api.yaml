@@ -17,7 +17,8 @@ env:
   CLERK_FRONTEND_API: clerk.workinpublic.io
   FE_DIR_PREFIX: /tmp
   HOST: https://workinpublic.io
-  STRIPE_SECRET_KEY: \${{ secrets.STRIPE_SECRET_KEY }}
+  STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
+  STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
   TYPEORM_CONNECTION: mysql
   TYPEORM_HOST: vargas-arts.c2sjnb5f4d57.us-east-1.rds.amazonaws.com
   TYPEORM_USERNAME: workinpublic_io

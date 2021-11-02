@@ -24,7 +24,7 @@
     "@typescript-eslint/eslint-plugin": "^5.1.0",
     "@typescript-eslint/parser": "^5.1.0",
     "eslint": "^8.0.1",
-    "fuegojs": "^0.14.11",
+    "fuegojs": "^0.14.15",
     "prettier": "^2.4.1",
     "ts-node": "^10.3.0",
     "tslint-config-prettier": "^1.18.0",
@@ -32,8 +32,9 @@
     "typescript": "^4.4.4"
   },
   "dependencies": {
-    "@dvargas92495/api": "^0.2.2",
-    "@dvargas92495/ui": "^0.42.1",
+    "@dvargas92495/api": "^0.2.3",
+    "@dvargas92495/ui": "^0.43.0",
+    "@stripe/stripe-js": "^1.20.3",
     "aws-sdk-plus": "^0.3.3",
     "axios": "^0.23.0",
     "stripe": "^8.184.0"

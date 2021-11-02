@@ -27,10 +27,10 @@ const logic = ({
       ])
     )
     .then(([board, fundingBoardProjects]) => ({
-      name: board?.name,
+      name: board?.name || "",
       projects: fundingBoardProjects.map(({ project }) => {
         const { user_id, ...rest } = project as ProjectSchema;
-        return rest;
+        return { ...rest, progress: 0 };
       }),
     }));
 

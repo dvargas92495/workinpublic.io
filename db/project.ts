@@ -6,6 +6,7 @@ export type ProjectSchema = {
   link: string;
   user_id: string;
   target: number;
+  progress: number;
 };
 
 export default new EntitySchema<ProjectSchema>({
@@ -32,6 +33,12 @@ export default new EntitySchema<ProjectSchema>({
       type: "int",
       nullable: false,
       unsigned: true,
-    }
+    },
+    progress: {
+      type: "int",
+      nullable: false,
+      unsigned: true,
+      default: 0,
+    },
   },
 });

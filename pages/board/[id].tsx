@@ -1,19 +1,150 @@
-import React from "react";
-import Card from "@dvargas92495/ui/dist/components/Card";
+import React, { useCallback, useState } from "react";
+import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
+import Queue from "@dvargas92495/ui/dist/components/Queue";
+import StringField from "@dvargas92495/ui/dist/components/StringField";
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import Layout, { LayoutHead } from "../_common/Layout";
 import type { Props } from "./[id].data";
+import useAuthenticatedHandler from "@dvargas92495/ui/dist/useAuthenticatedHandler";
+import useHandler from "@dvargas92495/ui/dist/useHandler";
+import NumberField from "@dvargas92495/ui/dist/components/NumberField";
+import { loadStripe } from "@stripe/stripe-js";
+import type { Handler as FundHandler } from "../../functions/project-fund/post";
 
-const BoardPage = ({ name, projects }: Props): React.ReactElement => (
-  <Layout>
-    <Card title={name}>
-      <ul>
-        {projects.map((p) => (
-          <li key={p.uuid}>{p.name}</li>
-        ))}
-      </ul>
-    </Card>
-  </Layout>
-);
+type ProjectFundButtonProps = {
+  uuid: string;
+  name: string;
+  isOpen?: boolean;
+};
+
+const stripe = loadStripe(process.env.STRIPE_PUBLIC_KEY || "");
+
+const ProjectFundButtonDialog: React.FunctionComponent<
+  ProjectFundButtonProps & {
+    handler: FundHandler;
+  }
+> = ({ name, uuid, handler, isOpen = false }) => {
+  return (
+    <FormDialog<{ funding: number }>
+      defaultIsOpen={isOpen}
+      title={name}
+      contentText={`Funding will be held in escrow until completion of the project.`}
+      buttonText={"FUND"}
+      onSave={({ funding }) =>
+        handler({
+          uuid,
+          funding,
+        }).then((r) =>
+          r.active
+            ? stripe.then(
+                (s) =>
+                  s &&
+                  s
+                    .redirectToCheckout({
+                      sessionId: r.id,
+                    })
+                    .then(() => Promise.resolve())
+              )
+            : Promise.resolve()
+        )
+      }
+      formElements={{
+        funding: {
+          order: 0,
+          defaultValue: 100,
+          component: NumberField,
+          validate: (v) =>
+            v > 0 ? "" : "Funding amount must be greater than 0",
+        },
+      }}
+    />
+  );
+};
+
+const SignedInFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
+  props
+) => {
+  const postHandler = useAuthenticatedHandler<FundHandler>({
+    method: "POST",
+    path: "project-fund",
+  });
+  return <ProjectFundButtonDialog {...props} handler={postHandler} />;
+};
+
+const SignedOutFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
+  props
+) => {
+  const postHandler = useHandler<FundHandler>({
+    method: "POST",
+    path: "project-fund",
+  });
+  return <ProjectFundButtonDialog {...props} handler={postHandler} />;
+};
+
+const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
+  props
+) => {
+  return (
+    <>
+      <SignedIn>
+        <SignedInFundButton {...props} />
+      </SignedIn>
+      <SignedOut>
+        <SignedOutFundButton {...props} />
+      </SignedOut>
+    </>
+  );
+};
+
+const BoardPage = ({ name, projects }: Props): React.ReactElement => {
+  const [search, setSearch] = useState("");
+  const mapper = useCallback(
+    (item: Props["projects"][number]) => ({
+      avatar: (
+        <div style={{ minWidth: 100 }}>
+          {Math.floor((item.progress / item.target) * 100)}% Funded
+        </div>
+      ),
+      primary: item.name,
+      secondary: (
+        <span>
+          <a href={`projects/${item.uuid}`}>Details</a>
+        </span>
+      ),
+      action: <ProjectFundButton uuid={item.uuid} name={item.name} />,
+      key: item.uuid,
+    }),
+    []
+  );
+  const filter = useCallback(
+    (item) =>
+      !search || item.primary.toLowerCase().indexOf(search.toLowerCase()) > -1,
+    [search]
+  );
+  return (
+    <Layout>
+      <div>
+        <div style={{ marginBottom: 16, padding: "0 16px" }}>
+          <StringField
+            value={search}
+            setValue={setSearch}
+            label={"Search"}
+            fullWidth
+          />
+        </div>
+        <div style={{ padding: 8, width: "100%", height: 512 }}>
+          <Queue
+            title={name}
+            loadItems={() => Promise.resolve(projects)}
+            mapper={mapper}
+            filter={filter}
+            subheader={""}
+          />
+        </div>
+      </div>
+    </Layout>
+  );
+};
 
 export const Head = () => <LayoutHead title={"Home"} />;
 
