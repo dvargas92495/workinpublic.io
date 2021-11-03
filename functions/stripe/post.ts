@@ -19,6 +19,9 @@ const logic = ({
     .create({
       type: "express",
       email,
+      metadata: {
+        application: 'workinpublic.io'
+      }
     })
     .then((a) =>
       stripe.accountLinks

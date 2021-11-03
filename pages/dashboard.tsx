@@ -338,9 +338,9 @@ const FundingBoardTabContent = ({
       .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, [id, page, rowsPerPage, setRows, setLoading]);
-  type ProjectBody = Omit<Parameters<PutProjectHandler>[0], "user" | "uuid">;
+  type ProjectBody = Omit<Parameters<PutProjectHandler>[0], "user" | "uuid" | "progress">;
   const formatByColumnId: Record<
-    Exclude<keyof FundingBoardProject, "uuid" | "linkUuid">,
+    Exclude<keyof FundingBoardProject, "uuid" | "linkUuid" | "progress">,
     (
       value: string | number,
       p: FundingBoardProject,

@@ -10,6 +10,7 @@ import useHandler from "@dvargas92495/ui/dist/useHandler";
 import NumberField from "@dvargas92495/ui/dist/components/NumberField";
 import { loadStripe } from "@stripe/stripe-js";
 import type { Handler as FundHandler } from "../../functions/project-fund/post";
+import Box from "@mui/material/Box";
 
 type ProjectFundButtonProps = {
   uuid: string;
@@ -35,7 +36,7 @@ const ProjectFundButtonDialog: React.FunctionComponent<
           uuid,
           funding,
         }).then((r) =>
-          r.active
+          !r.active
             ? stripe.then(
                 (s) =>
                   s &&
@@ -123,16 +124,27 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   );
   return (
     <Layout>
-      <div>
-        <div style={{ marginBottom: 16, padding: "0 16px" }}>
+      <Box
+        sx={{
+          maxWidth: "800px",
+          width: "100%",
+        }}
+      >
+        <Box sx={{ marginBottom: "16px", padding: "0 16px" }}>
           <StringField
             value={search}
             setValue={setSearch}
             label={"Search"}
             fullWidth
           />
-        </div>
-        <div style={{ padding: 8, width: "100%", height: 512 }}>
+        </Box>
+        <Box
+          sx={{
+            padding: 8,
+            width: "100%",
+            height: "512px",
+          }}
+        >
           <Queue
             title={name}
             loadItems={() => Promise.resolve(projects)}
@@ -140,8 +152,8 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
             filter={filter}
             subheader={""}
           />
-        </div>
-      </div>
+        </Box>
+      </Box>
     </Layout>
   );
 };
