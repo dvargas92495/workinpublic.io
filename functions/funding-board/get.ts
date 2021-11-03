@@ -30,7 +30,7 @@ const logic = ({
       name: board?.name || "",
       projects: fundingBoardProjects.map(({ project }) => {
         const { user_id, ...rest } = project as ProjectSchema;
-        return { ...rest, progress: 0 };
+        return rest;
       }),
     }));
 

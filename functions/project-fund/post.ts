@@ -19,7 +19,7 @@ const logic = async ({ uuid, funding }: { uuid: string; funding: number }) =>
       if (!destination) throw new ConflictError(`User associated with project ${uuid} hasn't connected with Stripe.`)
       const payment_intent_data = {
         metadata: { project: uuid },
-        application_fee_amount: 30 + Math.ceil(funding * 0.08),
+        application_fee_amount: 30 + Math.ceil(amount * 0.08),
         transfer_data: {
           destination,
         },

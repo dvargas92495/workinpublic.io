@@ -1,5 +1,4 @@
 import { EntitySchema } from "typeorm";
-import FundingBoard, { FundingBoardSchema } from "./funding_board";
 import Project from "./project";
 
 type InverseSchema<T> = T extends EntitySchema<infer R> ? R : never;

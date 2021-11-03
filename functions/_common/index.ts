@@ -1,6 +1,7 @@
 import AWS from "aws-sdk";
 import axios from "axios";
 import type { Handler as AsyncHandler } from "../build-board-page";
+import type { Handler as ProjectHandler } from "../build-project-page";
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -38,5 +39,11 @@ export const invokeAsync =
 export const invokeBuildBoardPage = (uuid: string) =>
   invokeAsync<Parameters<AsyncHandler>[0]>({
     path: "build-board-page",
+    data: { uuid },
+  });
+
+export const invokeBuildProjectPage = (uuid: string) =>
+  invokeAsync<Parameters<ProjectHandler>[0]>({
+    path: "build-project-page",
     data: { uuid },
   });

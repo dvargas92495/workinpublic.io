@@ -19,6 +19,7 @@ env:
   HOST: https://workinpublic.io
   STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
   STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+  STRIPE_CHECKOUT_SECRET: ${{ secrets.STRIPE_CHECKOUT_SECRET }}
   TYPEORM_CONNECTION: mysql
   TYPEORM_HOST: vargas-arts.c2sjnb5f4d57.us-east-1.rds.amazonaws.com
   TYPEORM_USERNAME: workinpublic_io

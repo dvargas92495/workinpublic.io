@@ -102,14 +102,14 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   const mapper = useCallback(
     (item: Props["projects"][number]) => ({
       avatar: (
-        <div style={{ minWidth: 100 }}>
-          {Math.floor((item.progress / item.target) * 100)}% Funded
-        </div>
+        <Box sx={{ minWidth: '100px', fontSize: 8 }} >
+          {Math.floor((item.progress / item.target) * 100)}% of ${item.target} Funded
+        </Box>
       ),
       primary: item.name,
       secondary: (
         <span>
-          <a href={`projects/${item.uuid}`}>Details</a>
+          <a href={`/projects/${item.uuid}`}>Details</a>
         </span>
       ),
       action: <ProjectFundButton uuid={item.uuid} name={item.name} />,
@@ -150,7 +150,7 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
             loadItems={() => Promise.resolve(projects)}
             mapper={mapper}
             filter={filter}
-            subheader={""}
+            subheader={"Fund a project to move it up in priority!"}
           />
         </Box>
       </Box>
@@ -158,6 +158,6 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   );
 };
 
-export const Head = () => <LayoutHead title={"Home"} />;
+export const Head = ({name}: {name:string}) => <LayoutHead title={name} />;
 
 export default BoardPage;

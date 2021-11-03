@@ -10,7 +10,7 @@ import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
 import Project from "../../db/project";
-import { invokeBuildBoardPage } from "../_common";
+import { invokeBuildBoardPage, invokeBuildProjectPage } from "../_common";
 
 const logic = ({
   board,
@@ -37,14 +37,22 @@ const logic = ({
         );
       return getRepository(Project)
         .insert({ name, link, target, user_id })
-        .then((r) =>
-          getRepository(FundingBoardProject).insert({
-            project: r.identifiers[0].uuid,
-            funding_board: board,
-          })
-        );
+        .then((r) => {
+          const project = r.identifiers[0].uuid as string;
+          return getRepository(FundingBoardProject)
+            .insert({
+              project,
+              funding_board: board,
+            })
+            .then(() => project);
+        });
     })
-    .then(() => invokeBuildBoardPage(board).then(() => ({ success: true })));
+    .then((project) =>
+      Promise.all([
+        invokeBuildBoardPage(board),
+        invokeBuildProjectPage(project),
+      ]).then(() => ({ success: true }))
+    );
 };
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)
