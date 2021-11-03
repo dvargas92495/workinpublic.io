@@ -46,6 +46,10 @@ variable "stripe_secret" {
   type = string
 }
 
+variable "stripe_checkout_secret" {
+  type = string
+}
+
 provider "aws" {
   region = "us-east-1"
   access_key = var.aws_access_token
@@ -133,4 +137,10 @@ resource "github_actions_secret" "stripe_secret" {
   repository       = "workinpublic.io"
   secret_name      = "STRIPE_SECRET_KEY"
   plaintext_value  = var.stripe_secret
+}
+
+resource "github_actions_secret" "stripe_checkout_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STRIPE_CHECKOUT_KEY"
+  plaintext_value  = var.stripe_checkout_secret
 }
