@@ -1,16 +1,13 @@
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { createAPIGatewayProxyHandler } from "aws-sdk-plus";
 import type { Stripe } from "stripe";
-import {
-  invokeBuildBoardPage,
-  invokeBuildProjectPage,
-  stripe,
-} from "../_common";
+import { stripe } from "../_common";
+import buildPagesByProjectId from "../_common/buildPagesByProjectId";
 import Project from "../../db/project";
 import ProjectBacker from "../../db/project_backer";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
-import { getRepository, getManager } from "typeorm";
+import { getRepository } from "typeorm";
 import type { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
 
 const verifyStripeWebhook =
@@ -83,21 +80,7 @@ const logic = ({
             })
             .then(() => p.project);
         })
-        .then((project) =>
-          getManager()
-            .createQueryBuilder(FundingBoardProject, 'l')
-            .select('l.funding_board', 'funding_board')
-            .where({ project })
-            .getRawMany()
-            .then((links) => {
-              return Promise.all([
-                invokeBuildProjectPage(project),
-                ...links.map((link) =>
-                  invokeBuildBoardPage(link.funding_board as string)
-                ),
-              ]);
-            })
-        )
+        .then((project) => buildPagesByProjectId(project))
     )
     .then(() => ({ success: true }));
 

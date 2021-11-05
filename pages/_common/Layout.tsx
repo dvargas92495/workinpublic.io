@@ -4,7 +4,11 @@ import { Head as DefaultHead } from "@dvargas92495/ui/dist/components/Document";
 
 const Layout: React.FC = ({ children }) => {
   return (
-    <DefaultLayout homeIcon={"Home"} pages={["dashboard"]}>
+    <DefaultLayout
+      homeIcon={<img src="/logo.png" width={48} height={48} />}
+      pages={["dashboard"]}
+      themeProps={{ primary: "#9c27b0", secondary: "#81c784" }}
+    >
       {children}
     </DefaultLayout>
   );
