@@ -131,7 +131,7 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
           width: "100%",
         }}
       >
-        <Box sx={{ marginBottom: "16px", padding: "0 16px" }}>
+        <Box sx={{ marginBottom: "16px", padding: "0 16px", width: "100%" }}>
           <StringField
             value={search}
             setValue={setSearch}
