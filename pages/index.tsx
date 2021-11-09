@@ -9,7 +9,7 @@ const Home: React.FC = () => (
   <Layout>
     <Landing>
       <Splash
-        title={"Tools That Empower You To Work In Public"}
+        title={"Become Empowered To Work In Public"}
         subtitle={
           "Gain access to a suite a tools that help you sustainably run publicly funded and publicly beneficial projects"
         }

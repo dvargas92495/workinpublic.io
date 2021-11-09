@@ -102,8 +102,9 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   const mapper = useCallback(
     (item: Props["projects"][number]) => ({
       avatar: (
-        <Box sx={{ minWidth: '100px', fontSize: 8 }} >
-          {Math.floor((item.progress / item.target) * 100)}% of ${item.target} Funded
+        <Box sx={{ minWidth: "100px", fontSize: 8 }}>
+          {Math.floor((item.progress / item.target) * 100)}% of ${item.target}{" "}
+          Funded
         </Box>
       ),
       primary: item.name,
@@ -158,6 +159,6 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   );
 };
 
-export const Head = ({name}: {name:string}) => <LayoutHead title={name} />;
+export const Head = ({ name }: { name: string }) => <LayoutHead title={name} />;
 
 export default BoardPage;
