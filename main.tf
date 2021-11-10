@@ -111,14 +111,14 @@ module "aws_static_site_staging" {
   }
 }
 
-module "aws-serverless-backend_staging" {
+module "aws-serverless-backend" {
   source  = "dvargas92495/serverless-backend/aws"
   version = "2.2.0"
 
   api_name = "workinpublic-io"
 }
 
-module "aws-serverless-backend" {
+module "aws-serverless-backend_staging" {
   source  = "dvargas92495/serverless-backend/aws"
   version = "2.2.0"
 
@@ -155,6 +155,30 @@ resource "github_actions_secret" "lambda_aws_access_secret" {
   repository       = "workinpublic.io"
   secret_name      = "LAMBDA_AWS_ACCESS_SECRET"
   plaintext_value  = module.aws-serverless-backend.secret_key
+}
+
+resource "github_actions_secret" "stagingd_aws_access_key" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGINGD_AWS_ACCESS_KEY"
+  plaintext_value  = module.aws_static_site_staging.deploy-id
+}
+
+resource "github_actions_secret" "stagingd_aws_access_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGINGD_AWS_ACCESS_SECRET"
+  plaintext_value  = module.aws_static_site_staging.deploy-secret
+}
+
+resource "github_actions_secret" "stagingl_aws_access_key" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGINGL_AWS_ACCESS_KEY"
+  plaintext_value  = module.aws-serverless-backend_staging.access_key
+}
+
+resource "github_actions_secret" "stagingl_aws_access_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGINGL_AWS_ACCESS_SECRET"
+  plaintext_value  = module.aws-serverless-backend_staging.secret_key
 }
 
 resource "github_actions_secret" "mysql_password" {
