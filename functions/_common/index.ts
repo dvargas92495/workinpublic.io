@@ -22,10 +22,9 @@ export const invokeAsync =
       }) =>
         lambda
           .invoke({
-            FunctionName: `${(process.env.HOST || "")?.replace(
-              /\./g,
-              "-"
-            )}_${path}`,
+            FunctionName: `${(process.env.HOST || "")
+              ?.replace(/\./g, "-")
+              .replace(/^https?:\/\//, "")}_${path}`,
             InvocationType: "Event",
             Payload: JSON.stringify(data),
           })
