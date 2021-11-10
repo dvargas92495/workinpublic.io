@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "@dvargas92495/api": "^0.2.4",
-    "@dvargas92495/ui": "^0.43.4",
+    "@dvargas92495/ui": "^0.44.2",
     "@stripe/stripe-js": "^1.20.3",
     "aws-sdk-plus": "^0.4.1",
     "axios": "^0.23.0",

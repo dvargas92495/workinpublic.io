@@ -97,10 +97,12 @@ const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
   );
 };
 
+type Project = Props["projects"][number];
+
 const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   const [search, setSearch] = useState("");
   const mapper = useCallback(
-    (item: Props["projects"][number]) => ({
+    (item: Project) => ({
       avatar: (
         <Box sx={{ minWidth: "100px", fontSize: 8 }}>
           {Math.floor((item.progress / item.target) * 100)}% of ${item.target}{" "}
@@ -146,9 +148,9 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
             height: "512px",
           }}
         >
-          <Queue
+          <Queue<Project>
             title={name}
-            loadItems={() => Promise.resolve(projects)}
+            initialItems={projects}
             mapper={mapper}
             filter={filter}
             subheader={"Fund a project to move it up in priority!"}
