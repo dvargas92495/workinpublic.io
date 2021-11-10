@@ -207,7 +207,7 @@ resource "github_actions_secret" "stripe_secret" {
 
 resource "github_actions_secret" "stripe_checkout_secret" {
   repository       = "workinpublic.io"
-  secret_name      = "STRIPE_CHECKOUT_KEY"
+  secret_name      = "STRIPE_CHECKOUT_SECRET"
   plaintext_value  = var.stripe_checkout_secret
 }
 
@@ -237,6 +237,6 @@ resource "github_actions_secret" "staging_stripe_secret" {
 
 resource "github_actions_secret" "staging_stripe_checkout_secret" {
   repository       = "workinpublic.io"
-  secret_name      = "STAGING_STRIPE_CHECKOUT_KEY"
+  secret_name      = "STAGING_STRIPE_CHECKOUT_SECRET"
   plaintext_value  = var.staging_stripe_checkout_secret
 }
