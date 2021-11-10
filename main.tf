@@ -76,11 +76,33 @@ module "aws_static_site" {
   }
 }
 
+module "aws_static_site" {
+  source  = "dvargas92495/static-site/aws"
+  version = "3.1.5"
+
+  domain = "staging.workinpublic.io"
+  secret = var.secret
+  tags = {
+      Application = "workinpublic-io"
+  }
+
+  providers = {
+    aws.us-east-1 = aws
+  }
+}
+
 module "aws-serverless-backend" {
   source  = "dvargas92495/serverless-backend/aws"
   version = "2.2.0"
 
   api_name = "workinpublic-io"
+}
+
+module "aws-serverless-backend" {
+  source  = "dvargas92495/serverless-backend/aws"
+  version = "2.2.0"
+
+  api_name = "staging-workinpublic-io"
 }
 
 module "aws_clerk" {
