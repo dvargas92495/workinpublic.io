@@ -42,6 +42,9 @@ const ProjectPage = ({
             />
           </Tooltip>
         </div>
+        <div>
+          Markdown content from the link would be rendered here.
+        </div>
       </div>
     </Layout>
   );

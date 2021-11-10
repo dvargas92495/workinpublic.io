@@ -113,14 +113,14 @@ module "aws_static_site_staging" {
 
 module "aws-serverless-backend" {
   source  = "dvargas92495/serverless-backend/aws"
-  version = "2.2.0"
+  version = "2.2.1"
 
   api_name = "workinpublic-io"
 }
 
 module "aws-serverless-backend_staging" {
   source  = "dvargas92495/serverless-backend/aws"
-  version = "2.2.0"
+  version = "2.2.1"
 
   api_name = "staging-workinpublic-io"
 }
