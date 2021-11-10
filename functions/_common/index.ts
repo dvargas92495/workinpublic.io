@@ -22,7 +22,10 @@ export const invokeAsync =
       }) =>
         lambda
           .invoke({
-            FunctionName: `workinpublic-io_${path}`,
+            FunctionName: `${(process.env.HOST || "")?.replace(
+              /\./g,
+              "-"
+            )}_${path}`,
             InvocationType: "Event",
             Payload: JSON.stringify(data),
           })

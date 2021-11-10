@@ -8,7 +8,7 @@ export const handler = ({ uuid }: { uuid: string }) =>
   isr({ Page, data, _html, params: { id: uuid }, path: "projects/[id].js" }).then(
     () =>
       process.env.NODE_ENV === "production"
-        ? deploy({ domain: "workinpublic.io" }).then(() =>
+        ? deploy({ domain: process.env.HOST }).then(() =>
             console.log("deployed successfully")
           )
         : console.log("Wrote locally")
