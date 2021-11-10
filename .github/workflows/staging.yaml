@@ -1,0 +1,52 @@
+name: Publish staging
+on:
+  workflow_dispatch:
+
+env:
+  API_URL: https://api.staging.workinpublic.io
+  AWS_ACCESS_KEY_ID: ${{ secrets.STAGINGD_AWS_ACCESS_KEY }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGINGD_AWS_ACCESS_SECRET }}
+  AWS_REGION: us-east-1
+  CLERK_API_KEY: ${{ secrets.STAGING_CLERK_API_KEY }}
+  CLERK_FRONTEND_API: clerk.fqjuo.e71y5.lcl.dev
+  FE_DIR_PREFIX: /tmp
+  HOST: https://staging.workinpublic.io
+  STRIPE_PUBLIC_KEY: ${{ secrets.STAGING_STRIPE_PUBLIC_KEY }}
+  STRIPE_SECRET_KEY: ${{ secrets.STAGING_STRIPE_SECRET_KEY }}
+  STRIPE_CHECKOUT_SECRET: ${{ secrets.STAGING_STRIPE_CHECKOUT_SECRET }}
+  TYPEORM_CONNECTION: mysql
+  TYPEORM_HOST: vargas-arts.c2sjnb5f4d57.us-east-1.rds.amazonaws.com
+  TYPEORM_USERNAME: staging_workinpublic_io
+  TYPEORM_PASSWORD: ${{ secrets.STAGING_MYSQL_PASSWORD }}
+  TYPEORM_DATABASE: staging_workinpublic_io
+  TYPEORM_PORT: 5432
+  TYPEORM_SYNCHRONIZE: false
+  TYPEORM_LOGGING: false
+  TYPEORM_ENTITIES: db/*.ts
+  TYPEORM_MIGRATIONS: db/migrations/*.ts
+  TYPEORM_MIGRATIONS_DIR: db/migrations
+
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js 14.17.6
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14.17.6
+      - name: install
+        run: npm install
+      - name: migrate
+        run: npm run migrate
+      - name: build api
+        run: npm run compile
+      - name: deploy api
+        run: npm run publish -- --name staging.workinpublic.io
+        env:        
+          AWS_ACCESS_KEY_ID: ${{ secrets.STAGINGL_AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.STAGINGL_AWS_ACCESS_SECRET }}
+      - name: build fe
+        run: npm run build
+      - name: deploy fe
+        run: npm run deploy -- --domain staging.workinpublic.io
