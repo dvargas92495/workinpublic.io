@@ -50,6 +50,26 @@ variable "stripe_checkout_secret" {
   type = string
 }
 
+variable "staging_clerk_api_key" {
+    type = string
+}
+
+variable "staging_mysql_password" {
+  type = string
+}
+
+variable "staging_stripe_public" {
+  type = string
+}
+
+variable "staging_stripe_secret" {
+  type = string
+}
+
+variable "staging_stripe_checkout_secret" {
+  type = string
+}
+
 provider "aws" {
   region = "us-east-1"
   access_key = var.aws_access_token
@@ -76,7 +96,7 @@ module "aws_static_site" {
   }
 }
 
-module "aws_static_site" {
+module "aws_static_site_staging" {
   source  = "dvargas92495/static-site/aws"
   version = "3.1.5"
 
@@ -91,7 +111,7 @@ module "aws_static_site" {
   }
 }
 
-module "aws-serverless-backend" {
+module "aws-serverless-backend_staging" {
   source  = "dvargas92495/serverless-backend/aws"
   version = "2.2.0"
 
@@ -165,4 +185,34 @@ resource "github_actions_secret" "stripe_checkout_secret" {
   repository       = "workinpublic.io"
   secret_name      = "STRIPE_CHECKOUT_KEY"
   plaintext_value  = var.stripe_checkout_secret
+}
+
+resource "github_actions_secret" "staging_mysql_password" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_MYSQL_PASSWORD"
+  plaintext_value  = var.staging_mysql_password
+}
+
+resource "github_actions_secret" "staging_clerk_api_key" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_CLERK_API_KEY"
+  plaintext_value  = var.staging_clerk_api_key
+}
+
+resource "github_actions_secret" "staging_stripe_public" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_STRIPE_PUBLIC_KEY"
+  plaintext_value  = var.staging_stripe_public
+}
+
+resource "github_actions_secret" "staging_stripe_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_STRIPE_SECRET_KEY"
+  plaintext_value  = var.staging_stripe_secret
+}
+
+resource "github_actions_secret" "staging_stripe_checkout_secret" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_STRIPE_CHECKOUT_KEY"
+  plaintext_value  = var.staging_stripe_checkout_secret
 }
