@@ -8,12 +8,22 @@ import ProjectBacker from "../../db/project_backer";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
 import { getRepository } from "typeorm";
-import type { APIGatewayProxyHandler } from "aws-lambda/trigger/api-gateway-proxy";
+import type {
+  APIGatewayProxyEventHeaders,
+  APIGatewayProxyHandler,
+} from "aws-lambda/trigger/api-gateway-proxy";
+
+const normalizeHeaders = (hdrs: APIGatewayProxyEventHeaders) =>
+  Object.fromEntries(
+    Object.entries(hdrs).map(([h, v]) => [h.toLowerCase(), v])
+  );
 
 const verifyStripeWebhook =
   (fcn: APIGatewayProxyHandler): APIGatewayProxyHandler =>
   (event, context, callback) => {
-    const { ["stripe-signature"]: sig, ...headers } = event.headers;
+    const { ["stripe-signature"]: sig, ...headers } = normalizeHeaders(
+      event.headers
+    );
     const { body, ...rest } = JSON.parse(event.body || "{}");
     try {
       const stripeEvent = stripe.webhooks.constructEvent(
