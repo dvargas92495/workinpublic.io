@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
 import Queue from "@dvargas92495/ui/dist/components/Queue";
 import StringField from "@dvargas92495/ui/dist/components/StringField";
@@ -97,7 +97,7 @@ const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
   );
 };
 
-type Project = Props["projects"][number];
+type Project = Props["projects"][number] & { percentProgress: number };
 
 const BoardPage = ({ name, projects }: Props): React.ReactElement => {
   const [search, setSearch] = useState("");
@@ -125,6 +125,21 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
       !search || item.primary.toLowerCase().indexOf(search.toLowerCase()) > -1,
     [search]
   );
+  const initialItems = useMemo(
+    () =>
+      projects
+        .map((p) => ({
+          ...p,
+          percentProgress: p.progress / p.target,
+        }))
+        .sort(
+          (
+            { percentProgress: a, name: aname },
+            { percentProgress: b, name: bname }
+          ) => (b === a ? aname.localeCompare(bname) : b - a)
+        ),
+    [projects]
+  );
   return (
     <Layout>
       <Box
@@ -150,7 +165,7 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
         >
           <Queue<Project>
             title={name}
-            initialItems={projects}
+            initialItems={initialItems}
             mapper={mapper}
             filter={filter}
             subheader={"Fund a project to move it up in priority!"}
