@@ -11,7 +11,7 @@ const Home: React.FC = () => (
       <Splash
         title={"Become Empowered To Work In Public"}
         subtitle={
-          "Gain access to a suite a tools that help you sustainably run publicly funded and publicly beneficial projects"
+          "Gain access to a suite of tools that help you sustainably run publicly funded and publicly beneficial projects"
         }
         primaryHref={"login"}
         secondaryHref={"about"}
