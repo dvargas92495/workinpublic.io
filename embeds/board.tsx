@@ -1,41 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import ReactDOM from "react-dom";
 import { BoardComponent } from "../pages/board/[id]";
-import Box from "@mui/material/Box";
-import Skeleton from "@mui/material/Skeleton";
-import useHandler from "@dvargas92495/ui/dist/useHandler";
-import Body from "@dvargas92495/ui/dist/components/Body";
-import type { Handler } from "../functions/funding-board/get";
 
 const boardId = process.env.FUNDING_BOARD_UUID || "";
-
-const EmbeddedBoard = () => {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [props, setProps] = useState({ name: "", projects: [] });
-  const handler = useHandler<Handler>({ path: "funding-board", method: "GET" });
-  useEffect(() => {
-    handler({ uuid: boardId, limit: 10, offset: 0 })
-      .then((props) => setProps(props))
-      .catch((e) => setError(e.message));
-  }, [setProps, setLoading, setError]);
-  return (
-    <Box sx={{ minHeight: "400px" }}>
-      {error ? (
-        <Body>{error}</Body>
-      ) : loading ? (
-        <Skeleton variant="rectangular" />
-      ) : (
-        <BoardComponent {...props} />
-      )}
-    </Box>
-  );
-};
+const propString = process.env.FUNDING_BOARD_PROPS || JSON.stringify({ name: "", projects: [] });
+const props = JSON.parse(propString);
 
 const currentScript = document.currentScript;
 if (document.head.contains(currentScript)) {
   window.addEventListener("load", () => {
-    ReactDOM.render(<EmbeddedBoard />, document.getElementById(boardId));
+    ReactDOM.render(<BoardComponent {...props} />, document.getElementById(boardId));
   });
 } else if (document.body.contains(currentScript)) {
   const parent = currentScript.parentElement;
@@ -43,7 +17,7 @@ if (document.head.contains(currentScript)) {
   parent.insertBefore(container, currentScript);
   currentScript.remove();
 
-  ReactDOM.render(<EmbeddedBoard />, container);
+  ReactDOM.render(<BoardComponent {...props} />, container);
 } else {
   throw new Error(`Failed to run WorkInPublic embed: Where is it?`);
 }

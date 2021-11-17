@@ -19,10 +19,20 @@ const createEmbed = (uuid: string) =>
     .promise()
     .then((r) => r.Body?.toString?.() || "")
     .then((content) =>
-      fs.writeFileSync(
-        path.join(process.env.FE_DIR_PREFIX || ".", "out", `/board/${uuid}.js`),
-        content.replace(/process\.env\.FUNDING_BOARD_UUID/, `"${uuid}"`)
-      )
+      data
+        .default({ params: { id: uuid } })
+        .then(({ props }) =>
+          fs.writeFileSync(
+            path.join(
+              process.env.FE_DIR_PREFIX || ".",
+              "out",
+              `/board/${uuid}.js`
+            ),
+            content
+              .replace(/process\.env\.FUNDING_BOARD_UUID/, `"${uuid}"`)
+              .replace(/process\.env\.FUNDING_BOARD_PROPS/, `"${JSON.stringify(props)}"`)
+          )
+        )
     );
 
 export const handler = ({ uuid }: { uuid: string }) =>
