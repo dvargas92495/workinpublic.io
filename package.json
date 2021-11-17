@@ -9,6 +9,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "api": "fuego api --tunnel workinpublic",
     "build": "fuego build",
+    "postbuild": "node scripts/build-embeds.js",
     "compile": "fuego compile",
     "deploy": "fuego deploy",
     "fe": "fuego fe",

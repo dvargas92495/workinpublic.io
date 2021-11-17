@@ -99,7 +99,10 @@ const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
 
 type Project = Props["projects"][number] & { percentProgress: number };
 
-const BoardPage = ({ name, projects }: Props): React.ReactElement => {
+export const BoardComponent = ({
+  name,
+  projects,
+}: Props): React.ReactElement => {
   const [search, setSearch] = useState("");
   const mapper = useCallback(
     (item: Project) => ({
@@ -141,40 +144,44 @@ const BoardPage = ({ name, projects }: Props): React.ReactElement => {
     [projects]
   );
   return (
-    <Layout>
+    <Box
+      sx={{
+        maxWidth: "800px",
+        width: "100%",
+      }}
+    >
+      <Box sx={{ marginBottom: "16px", padding: "0 16px", width: "100%" }}>
+        <StringField
+          value={search}
+          setValue={setSearch}
+          label={"Search"}
+          fullWidth
+        />
+      </Box>
       <Box
         sx={{
-          maxWidth: "800px",
+          padding: 8,
           width: "100%",
+          height: "512px",
         }}
       >
-        <Box sx={{ marginBottom: "16px", padding: "0 16px", width: "100%" }}>
-          <StringField
-            value={search}
-            setValue={setSearch}
-            label={"Search"}
-            fullWidth
-          />
-        </Box>
-        <Box
-          sx={{
-            padding: 8,
-            width: "100%",
-            height: "512px",
-          }}
-        >
-          <Queue<Project>
-            title={name}
-            initialItems={initialItems}
-            mapper={mapper}
-            filter={filter}
-            subheader={"Fund a project to move it up in priority!"}
-          />
-        </Box>
+        <Queue<Project>
+          title={name}
+          initialItems={initialItems}
+          mapper={mapper}
+          filter={filter}
+          subheader={"Fund a project to move it up in priority!"}
+        />
       </Box>
-    </Layout>
+    </Box>
   );
 };
+
+const BoardPage = (props: Props): React.ReactElement => (
+  <Layout>
+    <BoardComponent {...props} />
+  </Layout>
+);
 
 export const Head = ({ name }: { name: string }) => <LayoutHead title={name} />;
 
