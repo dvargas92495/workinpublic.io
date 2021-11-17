@@ -32,6 +32,12 @@ const EmbeddedBoard = () => {
   );
 };
 
+const currentScript = document.currentScript;
+const parent = currentScript.parentElement;
+const container = document.createElement('div');
+parent.insertBefore(container, currentScript);
+currentScript.remove();
+
 ReactDOM.render(
   <EmbeddedBoard />,
   document.getElementById(`workinpublic-board-${boardId}`)

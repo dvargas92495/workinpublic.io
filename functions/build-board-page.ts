@@ -14,7 +14,7 @@ const createEmbed = (uuid: string) =>
   s3
     .getObject({
       Bucket,
-      Key: `/board.js`,
+      Key: `board.js`,
     })
     .promise()
     .then((r) => r.Body?.toString?.() || "")
