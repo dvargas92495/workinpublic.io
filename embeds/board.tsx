@@ -33,12 +33,17 @@ const EmbeddedBoard = () => {
 };
 
 const currentScript = document.currentScript;
-const parent = currentScript.parentElement;
-const container = document.createElement('div');
-parent.insertBefore(container, currentScript);
-currentScript.remove();
+if (document.head.contains(currentScript)) {
+  window.addEventListener("load", () => {
+    ReactDOM.render(<EmbeddedBoard />, document.getElementById(boardId));
+  });
+} else if (document.body.contains(currentScript)) {
+  const parent = currentScript.parentElement;
+  const container = document.createElement("div");
+  parent.insertBefore(container, currentScript);
+  currentScript.remove();
 
-ReactDOM.render(
-  <EmbeddedBoard />,
-  document.getElementById(`workinpublic-board-${boardId}`)
-);
+  ReactDOM.render(<EmbeddedBoard />, container);
+} else {
+  throw new Error(`Failed to run WorkInPublic embed: Where is it?`);
+}
