@@ -2,10 +2,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import FormDialog from "@dvargas92495/ui/dist/components/FormDialog";
 import Queue from "@dvargas92495/ui/dist/components/Queue";
 import StringField from "@dvargas92495/ui/dist/components/StringField";
-import { SignedIn, SignedOut } from "@clerk/clerk-react";
 import Layout, { LayoutHead } from "../_common/Layout";
 import type { Props } from "./[id].data";
-import useAuthenticatedHandler from "@dvargas92495/ui/dist/useAuthenticatedHandler";
 import useHandler from "@dvargas92495/ui/dist/useHandler";
 import NumberField from "@dvargas92495/ui/dist/components/NumberField";
 import { loadStripe } from "@stripe/stripe-js";
@@ -62,17 +60,7 @@ const ProjectFundButtonDialog: React.FunctionComponent<
   );
 };
 
-const SignedInFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
-  props
-) => {
-  const postHandler = useAuthenticatedHandler<FundHandler>({
-    method: "POST",
-    path: "project-fund",
-  });
-  return <ProjectFundButtonDialog {...props} handler={postHandler} />;
-};
-
-const SignedOutFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
+const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
   props
 ) => {
   const postHandler = useHandler<FundHandler>({
@@ -80,21 +68,6 @@ const SignedOutFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
     path: "project-fund",
   });
   return <ProjectFundButtonDialog {...props} handler={postHandler} />;
-};
-
-const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
-  props
-) => {
-  return (
-    <>
-      <SignedIn>
-        <SignedInFundButton {...props} />
-      </SignedIn>
-      <SignedOut>
-        <SignedOutFundButton {...props} />
-      </SignedOut>
-    </>
-  );
 };
 
 type Project = Props["projects"][number] & { percentProgress: number };
