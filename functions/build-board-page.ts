@@ -30,7 +30,7 @@ const createEmbed = (uuid: string) =>
             ),
             content
               .replace(/process\.env\.FUNDING_BOARD_UUID/, `"${uuid}"`)
-              .replace(/process\.env\.FUNDING_BOARD_PROPS/, `"${JSON.stringify(props)}"`)
+              .replace(/process\.env\.FUNDING_BOARD_PROPS/, JSON.stringify(props))
           )
         )
     );
