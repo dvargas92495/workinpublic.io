@@ -83,7 +83,7 @@ provider "github" {
 
 module "aws_static_site" {
   source  = "dvargas92495/static-site/aws"
-  version = "3.1.5"
+  version = "3.2.0"
 
   domain = "workinpublic.io"
   secret = var.secret
@@ -98,7 +98,7 @@ module "aws_static_site" {
 
 module "aws_static_site_staging" {
   source  = "dvargas92495/static-site/aws"
-  version = "3.1.5"
+  version = "3.2.0"
 
   domain = "staging.workinpublic.io"
   secret = var.secret
@@ -239,4 +239,16 @@ resource "github_actions_secret" "staging_stripe_checkout_secret" {
   repository       = "workinpublic.io"
   secret_name      = "STAGING_STRIPE_CHECKOUT_SECRET"
   plaintext_value  = var.staging_stripe_checkout_secret
+}
+
+resource "github_actions_secret" "cloudfront_distribution_id" {
+  repository       = "workinpublic.io"
+  secret_name      = "CLOUDFRONT_DISTRIBUTION_ID"
+  plaintext_value  = module.aws_static_site.cloudfront_distribution_id
+}
+
+resource "github_actions_secret" "staging_cloudfront_distribution_id" {
+  repository       = "workinpublic.io"
+  secret_name      = "STAGING_CLOUDFRONT_DISTRIBUTION_ID"
+  plaintext_value  = module.aws_static_site_staging.cloudfront_distribution_id
 }
