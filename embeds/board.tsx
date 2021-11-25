@@ -8,9 +8,14 @@ const propString = JSON.stringify(
 );
 const props = JSON.parse(propString);
 
-window.addEventListener("load", () => {
+const render = () =>
   ReactDOM.render(
     <BoardComponent {...props} root={process.env.HOST} />,
     document.getElementById(boardId)
   );
-});
+
+if (document.readyState === "complete") {
+  render();
+} else {
+  window.addEventListener("load", render);
+}
