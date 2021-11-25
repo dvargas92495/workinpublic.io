@@ -36,6 +36,7 @@ import Link from "@mui/material/Link";
 import HomeIcon from "@mui/icons-material/Home";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import AddIcon from "@mui/icons-material/Add";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import AddCircleOutlineSharpIcon from "@mui/icons-material/AddCircleOutlineSharp";
 import FundingBoardIcon from "@mui/icons-material/DeveloperBoard";
 import ExpandLess from "@mui/icons-material/ExpandLess";
@@ -66,6 +67,11 @@ import FilledInput from "@mui/material/FilledInput";
 import InputAdornment from "@mui/material/InputAdornment";
 import CircularProgress from "@mui/material/CircularProgress";
 import GlobalStyles from "@mui/material/GlobalStyles";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogContentText from "@mui/material/DialogContentText";
+import TextField from "@mui/material/TextField";
 
 const HomeContent = () => {
   const [mounted, setMounted] = useState(false);
@@ -272,10 +278,125 @@ const EditableHeader = ({
   );
 };
 
-type TabItem = { text: string; id: string };
+const ShareDialog = ({ uuid, share }: { uuid: string; share?: string }) => {
+  const [open, setOpen] = useState(false);
+  const handleOpen = useCallback(() => setOpen(true), [setOpen]);
+  const handleClose = useCallback(() => setOpen(false), [setOpen]);
+  const putFundingBoard = useAuthenticatedHandler<PutHandler>({
+    method: "PUT",
+    path: "funding-board",
+  });
+  const [error, setError] = useState();
+  const [loading, setLoading] = useState(false);
+  const [dbValue, setDBValue] = useState(share || uuid);
+  const [shareValue, setShareValue] = useState(dbValue);
+  const [successMessage, setSuccessMessage] = useState("");
+  const onSubmit = useCallback(() => {
+    setLoading(true);
+    putFundingBoard({ share: shareValue, uuid })
+      .then(() => {
+        setSuccessMessage("Successfully Saved Name!");
+        setTimeout(() => {
+          setSuccessMessage("");
+        }, 3000);
+        setDBValue(shareValue || uuid);
+      })
+      .finally(() => setLoading(false));
+  }, [setLoading, setSuccessMessage, setError, setDBValue, uuid, shareValue]);
+  const onChange = useCallback(
+    (e) => {
+      setShareValue(e.target.value);
+    },
+    [setShareValue]
+  );
+  const copyLink = useCallback(() => {
+    window.navigator.clipboard.writeText(
+      `${window.location.origin}/board/${dbValue}`
+    );
+    setSuccessMessage("Copied!");
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  }, [dbValue]);
+  const code = useMemo(
+    () => `<div id="${uuid}"></div>
+<script
+  async
+  src="https://workinpublic.io/board/${uuid}.js"
+></script>`,
+    [uuid]
+  );
+  const copyCode = useCallback(() => {
+    window.navigator.clipboard.writeText(code);
+    setSuccessMessage("Copied!");
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
+  }, [uuid]);
+  return (
+    <>
+      <IconButton onClick={handleOpen}>
+        <ShareIcon />
+      </IconButton>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Share Funding Board</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            There are multiple ways to share your funding board!
+          </DialogContentText>
+          <Button onClick={copyLink} variant={"contained"} sx={{ my: 1 }}>
+            Copy Link
+          </Button>
+          <TextField
+            value={shareValue}
+            onChange={onChange}
+            label={"URL"}
+            fullWidth
+            InputProps={{
+              startAdornment: (
+                <Box sx={{ color: "#00000061" }} component={"span"}>
+                  {window.location.origin}/board/
+                </Box>
+              ),
+              endAdornment: (
+                <IconButton onClick={onSubmit}>
+                  <CheckIcon />
+                </IconButton>
+              ),
+            }}
+            sx={{ my: 1 }}
+          />
+          <TextField
+            defaultValue={code}
+            disabled
+            label={"Embed"}
+            multiline
+            fullWidth
+            InputProps={{
+              endAdornment: (
+                <IconButton onClick={copyCode}>
+                  <ContentCopyIcon />
+                </IconButton>
+              ),
+            }}
+            sx={{ my: 1, fontFamily: "monospace" }}
+          />
+          <Box component={"p"} sx={{ minHeight: "32px" }}>
+            {successMessage}
+            {loading && <CircularProgress size={24} />}
+            {error}
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
+type TabItem = { text: string; id: string; properties: Record<string, string> };
 const FundingBoardTabContent = ({
   id,
   text,
+  properties,
   onTextChange,
   onTabDelete,
 }: TabItem & {
@@ -338,7 +459,10 @@ const FundingBoardTabContent = ({
       .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, [id, page, rowsPerPage, setRows, setLoading]);
-  type ProjectBody = Omit<Parameters<PutProjectHandler>[0], "user" | "uuid" | "progress">;
+  type ProjectBody = Omit<
+    Parameters<PutProjectHandler>[0],
+    "user" | "uuid" | "progress"
+  >;
   const formatByColumnId: Record<
     Exclude<keyof FundingBoardProject, "uuid" | "linkUuid" | "progress">,
     (
@@ -409,7 +533,6 @@ const FundingBoardTabContent = ({
   useEffect(() => {
     refresh();
   }, [refresh]);
-
   return (
     <>
       <Box
@@ -460,15 +583,7 @@ const FundingBoardTabContent = ({
       <Box flexGrow={1}>
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
           <div>
-            <IconButton
-              onClick={() =>
-                window.navigator.clipboard.writeText(
-                  `${window.location.origin}/board/${id}`
-                )
-              }
-            >
-              <ShareIcon />
-            </IconButton>
+            <ShareDialog uuid={id} share={properties["share"]} key={id} />
           </div>
           <TableContainer sx={{ maxHeight: 440 }}>
             {loading ? (
@@ -663,6 +778,7 @@ const Dashboard = () => {
   const [nestedTab, setNestedTab] = useState<TabItem>({
     id: "Home",
     text: "Home",
+    properties: {},
   });
   const TabContent = TABS[tab].content;
   const getFundingBoards = useAuthenticatedHandler<GetHandler>({
@@ -680,9 +796,10 @@ const Dashboard = () => {
         "Funding Board": () =>
           getFundingBoards()
             .then(({ fundingBoards }) =>
-              fundingBoards.map(({ uuid, name }) => ({
+              fundingBoards.map(({ uuid, name, share }) => ({
                 id: uuid,
                 text: name,
+                properties: { share },
               }))
             )
             .catch(() => []),
@@ -765,6 +882,7 @@ const Dashboard = () => {
                   setNestedTab({
                     id: TABS[index].text,
                     text: TABS[index].text,
+                    properties: {},
                   });
                 }}
                 sx={{ display: "flex" }}

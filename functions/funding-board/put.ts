@@ -6,17 +6,18 @@ import FundingBoard from "../../db/funding_board";
 import { invokeBuildBoardPage } from "../_common";
 
 const logic = ({
-  name,
   uuid,
   user: { id },
+  ...update
 }: {
-  name: string;
   uuid: string;
   user: { id: string };
+  name?: string;
+  share?: string;
 }) =>
   connectTypeorm([FundingBoard])
     .then(() =>
-      getRepository(FundingBoard).update({ uuid, user_id: id }, { name })
+      getRepository(FundingBoard).update({ uuid, user_id: id }, update)
     )
     .then((result) =>
       invokeBuildBoardPage(uuid).then(() => ({

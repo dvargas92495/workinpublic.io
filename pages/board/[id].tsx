@@ -74,7 +74,7 @@ type Project = Props["projects"][number] & { percentProgress: number };
 
 export const BoardComponent = ({
   name,
-  projects,
+  projects = [],
 }: Props): React.ReactElement => {
   const [search, setSearch] = useState("");
   const mapper = useCallback(

@@ -1,8 +1,7 @@
 import type { Handler as GetHandler } from "../../functions/funding-board/get";
-import type { InnerPromise } from "@dvargas92495/ui/dist/types";
 import axios from "axios";
 
-export type Props = InnerPromise<ReturnType<GetHandler>>;
+export type Props = Awaited<ReturnType<GetHandler>>;
 
 const getStaticProps = ({
   params: { id },
@@ -10,7 +9,7 @@ const getStaticProps = ({
   params: { id: string };
 }): Promise<{ props: Props }> => {
   return axios
-    .get<Props>(`${process.env.API_URL}/funding-board?uuid=${id}`)
+    .get<Props>(`${process.env.API_URL}/funding-board?id=${id}`)
     .then((r) => ({
       props: r.data,
     }));

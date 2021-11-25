@@ -4,6 +4,7 @@ export type FundingBoardSchema = {
   uuid: string;
   name: string;
   user_id: string;
+  share: string;
 };
 
 export default new EntitySchema<FundingBoardSchema>({
@@ -21,6 +22,11 @@ export default new EntitySchema<FundingBoardSchema>({
     user_id: {
       type: "varchar",
       nullable: false,
+    },
+    share: {
+      type: "varchar",
+      nullable: true,
+      unique: true,
     },
   },
 });
