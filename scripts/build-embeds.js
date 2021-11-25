@@ -1,5 +1,6 @@
 const esbuild = require("esbuild").build;
 const fs = require("fs");
+const path = require("path");
 
 const IGNORE_ENV = ["HOME"];
 const getDotEnvObject = () => {
