@@ -10,7 +10,7 @@ const props = JSON.parse(propString);
 
 window.addEventListener("load", () => {
   ReactDOM.render(
-    <BoardComponent {...props} />,
+    <BoardComponent {...props} root={process.env.HOST} />,
     document.getElementById(boardId)
   );
 });

@@ -75,7 +75,8 @@ type Project = Props["projects"][number] & { percentProgress: number };
 export const BoardComponent = ({
   name,
   projects = [],
-}: Props): React.ReactElement => {
+  root = ''
+}: Props & {root?: string}): React.ReactElement => {
   const [search, setSearch] = useState("");
   const mapper = useCallback(
     (item: Project) => ({
@@ -88,7 +89,7 @@ export const BoardComponent = ({
       primary: item.name,
       secondary: (
         <span>
-          <a href={`/projects/${item.uuid}`}>Details</a>
+          <a href={`${root}/projects/${item.uuid}`}>Details</a>
         </span>
       ),
       action: <ProjectFundButton uuid={item.uuid} name={item.name} />,
