@@ -808,11 +808,14 @@ const Dashboard = () => {
   );
   const newItemByTab: NestedTabRecord<NestedTabProps["newItem"]> = useMemo(
     () => ({
-      "Funding Board": ((body) =>
+      "Funding Board": (body) =>
         postFundingBoard(body).then((r) => ({
           id: r.uuid,
           text: body.name,
-        }))) as NestedTabProps["newItem"],
+          properties: {
+            share: "",
+          },
+        })),
     }),
     [postFundingBoard]
   );

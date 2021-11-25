@@ -16,12 +16,13 @@ const getDotEnvObject = () => {
 };
 
 const build = () => {
-  if (!fs.existsSync("out")) fs.mkdirSync("out");
+  const outdir = path.join(process.env.FE_DIR_PREFIX || "", "out");
+  if (!fs.existsSync(outdir)) fs.mkdirSync(outdir);
   const entryPoints = fs.readdirSync("embeds").map((f) => `embeds/${f}`);
   return esbuild({
     entryPoints,
     bundle: true,
-    outdir: "out",
+    outdir,
     minify: true,
     define: getDotEnvObject(),
   })
