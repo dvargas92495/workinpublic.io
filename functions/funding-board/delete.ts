@@ -3,6 +3,9 @@ import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLam
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import { getRepository } from "typeorm";
 import FundingBoard from "../../db/funding_board";
+import FundingBoardProject from "../../db/funding_board_project";
+import { invokeDeleteBoardPage } from "../_common";
+import { MethodNotAllowedError } from "aws-sdk-plus/dist/errors";
 
 const logic = ({
   uuid,
@@ -11,11 +14,23 @@ const logic = ({
   uuid: string;
   user: { id: string };
 }) =>
-  connectTypeorm([FundingBoard])
-    .then(() => getRepository(FundingBoard).delete({ uuid, user_id: id }))
-    .then((r) => ({
-      success: !!r.affected,
-    }));
+  connectTypeorm([FundingBoard, FundingBoardProject])
+    .then(() =>
+      getRepository(FundingBoardProject).count({ funding_board: uuid })
+    )
+    .then((n) => {
+      if (n) {
+        throw new MethodNotAllowedError(
+          `Cannot delete board ${uuid} when it still has projects`
+        );
+      }
+      return getRepository(FundingBoard).delete({ uuid, user_id: id });
+    })
+    .then((r) =>
+      invokeDeleteBoardPage(uuid).then(() => ({
+        success: !!r.affected,
+      }))
+    );
 
 export const handler = clerkAuthenticateLambda(
   createAPIGatewayProxyHandler(logic)

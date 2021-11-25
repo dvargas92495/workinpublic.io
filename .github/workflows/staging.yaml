@@ -9,6 +9,7 @@ env:
   AWS_REGION: us-east-1
   CLERK_API_KEY: ${{ secrets.STAGING_CLERK_API_KEY }}
   CLERK_FRONTEND_API: clerk.fqjuo.e71y5.lcl.dev
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.STAGING_CLOUDFRONT_DISTRIBUTION_ID }}
   FE_DIR_PREFIX: /tmp
   HOST: https://staging.workinpublic.io
   STRIPE_PUBLIC_KEY: ${{ secrets.STAGING_STRIPE_PUBLIC_KEY }}

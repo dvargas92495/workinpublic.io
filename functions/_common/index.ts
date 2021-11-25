@@ -2,6 +2,8 @@ import AWS from "aws-sdk";
 import axios from "axios";
 import type { Handler as AsyncHandler } from "../build-board-page";
 import type { Handler as ProjectHandler } from "../build-project-page";
+import type { Handler as DeleteBoardHandler } from "../delete-board-page";
+import type { Handler as DeleteProjectHandler } from "../delete-project-page";
 import Stripe from "stripe";
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
@@ -47,5 +49,17 @@ export const invokeBuildBoardPage = (uuid: string) =>
 export const invokeBuildProjectPage = (uuid: string) =>
   invokeAsync<Parameters<ProjectHandler>[0]>({
     path: "build-project-page",
+    data: { uuid },
+  });
+
+export const invokeDeleteBoardPage = (uuid: string, share?: string) =>
+  invokeAsync<Parameters<DeleteBoardHandler>[0]>({
+    path: "delete-board-page",
+    data: { uuid, share },
+  });
+
+export const invokeDeleteProjectPage = (uuid: string) =>
+  invokeAsync<Parameters<DeleteProjectHandler>[0]>({
+    path: "delete-project-page",
     data: { uuid },
   });

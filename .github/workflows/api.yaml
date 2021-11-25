@@ -14,6 +14,7 @@ env:
   AWS_REGION: us-east-1
   CLERK_API_KEY: ${{ secrets.CLERK_API_KEY }}
   CLERK_FRONTEND_API: clerk.workinpublic.io
+  CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
   FE_DIR_PREFIX: /tmp
   HOST: https://workinpublic.io
   STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}

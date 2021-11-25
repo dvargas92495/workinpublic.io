@@ -6,7 +6,7 @@ import { getRepository } from "typeorm";
 import FundingBoard, { FundingBoardSchema } from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
 import FundingBoardProject from "../../db/funding_board_project";
-import { invokeBuildBoardPage } from "../_common";
+import { invokeBuildBoardPage, invokeDeleteProjectPage } from "../_common";
 
 const logic = ({
   uuid,
@@ -45,7 +45,11 @@ const logic = ({
               ? Promise.resolve(true)
               : getRepository(Project)
                   .delete(projectUuid)
-                  .then((r) => !!r.affected)
+                  .then((r) =>
+                    invokeDeleteProjectPage(projectUuid).then(
+                      () => !!r.affected
+                    )
+                  )
           )
         );
     })
