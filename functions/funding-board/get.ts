@@ -1,6 +1,5 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
-import { getRepository } from "typeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
@@ -18,16 +17,15 @@ const logic = ({
   limit: number;
   offset: number;
 }) =>
-  connectTypeorm([FundingBoardProject, Project, FundingBoard])
-    .then(() =>
-      UUID_REGEX.test(id)
-        ? getRepository(FundingBoard).findOne(id)
-        : getRepository(FundingBoard).findOne({ share: id })
-    )
-    .then((board) => {
+  connectTypeorm([FundingBoardProject, Project, FundingBoard]).then((con) =>
+    (UUID_REGEX.test(id)
+      ? con.getRepository(FundingBoard).findOne(id)
+      : con.getRepository(FundingBoard).findOne({ share: id })
+    ).then((board) => {
       if (!board)
         throw new NotFoundError(`Could not find funding board with id: ${id}`);
-      return getRepository(FundingBoardProject)
+      return con
+        .getRepository(FundingBoardProject)
         .find({
           where: { funding_board: board.uuid },
           relations: ["project"],
@@ -41,7 +39,8 @@ const logic = ({
             return rest;
           }),
         }));
-    });
+    })
+  );
 
 export const handler = createAPIGatewayProxyHandler(logic);
 export type Handler = typeof logic;

@@ -217,7 +217,7 @@ const columns: readonly Column[] = [
   { id: "link", label: "Description Link", minWidth: 240 },
   {
     id: "target",
-    label: "Funding Target",
+    label: "Target",
     minWidth: 120,
     align: "right",
   },
@@ -586,73 +586,76 @@ const FundingBoardTabContent = ({
             <ShareDialog uuid={id} share={properties["share"]} key={id} />
           </div>
           <TableContainer sx={{ maxHeight: 440 }}>
-            {loading ? (
-              <Skeleton variant="rectangular" />
-            ) : (
-              <Table stickyHeader aria-label="sticky table">
-                <TableHead>
-                  <TableRow>
-                    {columns.map((column) => (
-                      <TableCell
-                        key={column.id}
-                        align={column.align}
-                        style={{ minWidth: column.minWidth }}
+            <Table stickyHeader aria-label="sticky table">
+              <TableHead>
+                <TableRow>
+                  {columns.map((column) => (
+                    <TableCell
+                      key={column.id}
+                      align={column.align}
+                      style={{ minWidth: column.minWidth }}
+                    >
+                      {column.label}
+                    </TableCell>
+                  ))}
+                  <TableCell />
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row) => {
+                    return (
+                      <TableRow
+                        hover
+                        role="checkbox"
+                        tabIndex={-1}
+                        key={row.uuid}
                       >
-                        {column.label}
-                      </TableCell>
+                        {columns.map((column) => {
+                          const value = row[column.id];
+                          return (
+                            <TableCell key={column.id} align={column.align}>
+                              {formatByColumnId[
+                                column.id as keyof typeof formatByColumnId
+                              ](value, row, rows)}
+                            </TableCell>
+                          );
+                        })}
+                        <TableCell>
+                          <ConfirmationDialog
+                            content={
+                              "Are you sure you want to remove this project from this funding board?"
+                            }
+                            color={"error"}
+                            title={`Remove ${row.name} Project`}
+                            action={() =>
+                              deleteFundingBoardProject({
+                                uuid: row.linkUuid,
+                              }).then(
+                                (r) =>
+                                  r.success &&
+                                  setRows(
+                                    rows.filter((rw) => rw.uuid !== row.uuid)
+                                  )
+                              )
+                            }
+                            buttonText={<DeleteIcon />}
+                            Button={IconButton}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                {loading && (
+                  <TableRow sx={{ minHeight: "73px" }}>
+                    {columns.map(() => (
+                      <Skeleton variant="rectangular" component={"td"} />
                     ))}
-                    <TableCell />
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {rows
-                    .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                    .map((row) => {
-                      return (
-                        <TableRow
-                          hover
-                          role="checkbox"
-                          tabIndex={-1}
-                          key={row.uuid}
-                        >
-                          {columns.map((column) => {
-                            const value = row[column.id];
-                            return (
-                              <TableCell key={column.id} align={column.align}>
-                                {formatByColumnId[
-                                  column.id as keyof typeof formatByColumnId
-                                ](value, row, rows)}
-                              </TableCell>
-                            );
-                          })}
-                          <TableCell>
-                            <ConfirmationDialog
-                              content={
-                                "Are you sure you want to remove this project from this funding board?"
-                              }
-                              color={"error"}
-                              title={`Remove ${row.name} Project`}
-                              action={() =>
-                                deleteFundingBoardProject({
-                                  uuid: row.linkUuid,
-                                }).then(
-                                  (r) =>
-                                    r.success &&
-                                    setRows(
-                                      rows.filter((rw) => rw.uuid !== row.uuid)
-                                    )
-                                )
-                              }
-                              buttonText={<DeleteIcon />}
-                              Button={IconButton}
-                            />
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            )}
+                )}
+              </TableBody>
+            </Table>
           </TableContainer>
           <TablePagination
             rowsPerPageOptions={[10, 25, 100]}
@@ -922,6 +925,7 @@ const Dashboard = () => {
               setTab(0);
               refreshRef.current[TABS[tab].text]();
             }}
+            key={nestedTab.id}
           />
         </Box>
       </Box>

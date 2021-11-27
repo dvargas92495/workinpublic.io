@@ -7,7 +7,6 @@ import Project from "../../db/project";
 import ProjectBacker from "../../db/project_backer";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
-import { getRepository } from "typeorm";
 import type {
   APIGatewayProxyEventHeaders,
   APIGatewayProxyHandler,
@@ -54,7 +53,7 @@ const verifyStripeWebhook =
       console.error(err);
       return Promise.resolve({
         statusCode: 400,
-        body: `Webhook Error: ${err.message}`,
+        body: `Webhook Error: ${err}`,
       });
     }
   };
@@ -77,20 +76,23 @@ const logic = ({
         ProjectBacker,
         FundingBoard,
         FundingBoardProject,
-      ])
-        .then(() => getRepository(ProjectBacker).insert(p))
-        .then(() => {
-          const projectRepo = getRepository(Project);
-          return projectRepo
-            .findOne(p.project, { select: ["progress"] })
-            .then((pi) => {
-              return projectRepo.update(p.project, {
-                progress: (pi?.progress || 0) + amount / 100,
-              });
-            })
-            .then(() => p.project);
-        })
-        .then((project) => buildPagesByProjectId(project))
+      ]).then((con) =>
+        con
+          .getRepository(ProjectBacker)
+          .insert(p)
+          .then(() => {
+            const projectRepo = con.getRepository(Project);
+            return projectRepo
+              .findOne(p.project, { select: ["progress"] })
+              .then((pi) => {
+                return projectRepo.update(p.project, {
+                  progress: (pi?.progress || 0) + amount / 100,
+                });
+              })
+              .then(() => p.project);
+          })
+          .then((project) => buildPagesByProjectId(con, project))
+      )
     )
     .then(() => ({ success: true }));
 

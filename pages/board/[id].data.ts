@@ -1,5 +1,6 @@
 import type { Handler as GetHandler } from "../../functions/funding-board/get";
 import axios from "axios";
+import formatError from "@dvargas92495/api/dist/formatError";
 
 export type Props = Awaited<ReturnType<GetHandler>>;
 
@@ -12,7 +13,10 @@ const getStaticProps = ({
     .get<Props>(`${process.env.API_URL}/funding-board?id=${id}`)
     .then((r) => ({
       props: r.data,
-    }));
+    }))
+    .catch((e) => {
+      throw new Error(formatError(e));
+    });
 };
 
 export default getStaticProps;

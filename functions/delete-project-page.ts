@@ -14,7 +14,7 @@ const deleteHtml = (id: string) =>
           path.join(
             process.env.FE_DIR_PREFIX || ".",
             "out",
-            `project/${id}.html`
+            `projects/${id}.html`
           ),
           (err) => (err ? reject(err) : resolve())
         )
@@ -22,10 +22,10 @@ const deleteHtml = (id: string) =>
     : s3
         .deleteObject({
           Bucket,
-          Key: `project/${id}.html`,
+          Key: `projects/${id}.html`,
         })
         .promise()
-  ).then(() => [`/project/${id}`, `/project/${id}.html`]);
+  ).then(() => [`/projects/${id}`, `/projects/${id}.html`]);
 
 export const handler = ({ uuid }: { uuid: string }) =>
   deleteHtml(uuid)

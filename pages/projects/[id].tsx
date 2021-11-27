@@ -4,12 +4,14 @@ import type { Props } from "./[id].data";
 import Link from "@mui/material/Link";
 import LinearProgress from "@mui/material/LinearProgress";
 import Tooltip from "@mui/material/Tooltip";
+import Box from "@mui/material/Box";
 
 const ProjectPage = ({
   name,
   boards,
   progress,
   target,
+  content,
 }: Props): React.ReactElement => {
   const [isCheckout, setIsCheckout] = useState(false);
   useEffect(() => {
@@ -33,7 +35,7 @@ const ProjectPage = ({
             </Link>
           ))}
         </h6>
-        <div>
+        <Box sx={{ my: "16px" }}>
           <Tooltip title={`Funded $${progress} out of $${target}`}>
             <LinearProgress
               value={(progress / target) * 100}
@@ -41,10 +43,8 @@ const ProjectPage = ({
               color={"primary"}
             />
           </Tooltip>
-        </div>
-        <div>
-          Markdown content from the link would be rendered here.
-        </div>
+        </Box>
+        <div dangerouslySetInnerHTML={{ __html: content }} />
       </div>
     </Layout>
   );

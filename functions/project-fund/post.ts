@@ -2,13 +2,12 @@ import { stripe } from "../_common";
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
 import Project, { ProjectSchema } from "../../db/project";
-import { getRepository } from "typeorm";
 import { users } from "@clerk/clerk-sdk-node";
 import { ConflictError, NotFoundError } from "aws-sdk-plus/dist/errors";
 
 const logic = async ({ uuid, funding }: { uuid: string; funding: number }) =>
   connectTypeorm([Project])
-    .then(() => getRepository(Project).findOne(uuid))
+    .then((con) => con.getRepository(Project).findOne(uuid))
     .then(async (p) => {
       if (!p) throw new NotFoundError(`Couldn't find froject ${uuid}`);
       const project = p as ProjectSchema;

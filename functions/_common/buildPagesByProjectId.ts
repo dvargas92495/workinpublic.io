@@ -1,9 +1,9 @@
-import { getManager } from "typeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import { invokeBuildBoardPage, invokeBuildProjectPage } from ".";
+import type {Connection} from 'typeorm';
 
-const buildPagesByProjectId = (project: string) =>
-  getManager()
+const buildPagesByProjectId = (con: Connection, project: string) =>
+  con
     .createQueryBuilder(FundingBoardProject, "l")
     .select("l.funding_board", "funding_board")
     .where({ project })

@@ -134,7 +134,7 @@ export const BoardComponent = ({
       </Box>
       <Box
         sx={{
-          padding: 8,
+          p: 2,
           width: "100%",
           height: "512px",
         }}

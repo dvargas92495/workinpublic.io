@@ -1,7 +1,6 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
 import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
-import { getRepository } from "typeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
@@ -16,8 +15,8 @@ const logic = ({
   offset: number;
 }) =>
   connectTypeorm([FundingBoardProject, Project, FundingBoard])
-    .then(() =>
-      getRepository(FundingBoardProject).find({
+    .then((con) =>
+      con.getRepository(FundingBoardProject).find({
         where: { funding_board: board },
         relations: ["project"],
         take: limit,
