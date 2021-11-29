@@ -12,7 +12,7 @@ const AboutPage: React.FunctionComponent = () => (
       }
       paragraphs={[
         "Working in the public domain (e.g. open-source software), is traditionally very difficult to do sustainably because the output is publicly accessible. However, this output is still incredibly valuable. Creators and organizations should be properly incentivized to work in this domain.",
-        "WorkInPublic is a library of products that will help enable creators to work in the public domain sustainably. You can think of the public work space as a two by two matrix:",
+        "WorkInPublic is a library of products that will help enable creators to work in the public domain sustainably. You can think of funding projects in the public work space as a two by two matrix:",
         <Box
           component={"table"}
           sx={{

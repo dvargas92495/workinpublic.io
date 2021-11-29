@@ -6,7 +6,7 @@ const Layout: React.FC = ({ children }) => {
   return (
     <DefaultLayout
       homeIcon={<img src="/logo.png" width={48} height={48} />}
-      pages={["dashboard"]}
+      pages={["products", "about"]}
       themeProps={{ primary: "#9c27b0", secondary: "#81c784" }}
     >
       {children}

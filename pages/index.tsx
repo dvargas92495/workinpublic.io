@@ -4,6 +4,7 @@ import Landing, {
   Showcase,
   Splash,
 } from "@dvargas92495/ui/dist/components/Landing";
+import { ReactSVG } from "react-svg";
 
 const Home: React.FC = () => (
   <Layout>
@@ -14,8 +15,8 @@ const Home: React.FC = () => (
           "Gain access to a suite of tools that help you sustainably run publicly funded and publicly beneficial projects"
         }
         primaryHref={"login"}
-        secondaryHref={"about"}
-        Logo={() => <svg />}
+        secondaryHref={"products"}
+        Logo={() => <ReactSVG src="/undraw.svg" />}
       />
       <Showcase
         header={"Check out our current library of products!"}
