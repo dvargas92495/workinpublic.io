@@ -3,6 +3,7 @@ import H1 from "@dvargas92495/ui/dist/components/H1";
 import H2 from "@dvargas92495/ui/dist/components/H2";
 import Body from "@dvargas92495/ui/dist/components/Body";
 import Divider from "@mui/material/Divider";
+import Link from "@mui/material/Link";
 import Layout, { LayoutHead } from "./_common/Layout";
 
 const ProductsPage: React.FunctionComponent = () => (
@@ -10,7 +11,9 @@ const ProductsPage: React.FunctionComponent = () => (
     <div>
       <H1>Products</H1>
       <Body>
-        Check out all of our different products and learn how they work!
+        Check out all of our different products and learn how they work! All
+        products are accessible from the <Link href={"/user"}>user</Link> page
+        once you've logged in.
       </Body>
       <Divider />
       <H2>Funding Board</H2>
@@ -36,9 +39,11 @@ const ProductsPage: React.FunctionComponent = () => (
         percentage of a funding target hit.
       </Body>
       <Body>
-        <b>Finally,</b> complete the project at the top of your board and receive
-        the fruits of your labor!
+        <b>Finally,</b> complete the project at the top of your board and
+        receive the fruits of your labor!
       </Body>
+      <Divider />
+      <H2>More products coming soon!</H2>
     </div>
   </Layout>
 );
