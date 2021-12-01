@@ -42,6 +42,27 @@ const ProductsPage: React.FunctionComponent = () => (
         <b>Finally,</b> complete the project at the top of your board and
         receive the fruits of your labor!
       </Body>
+      <Body>Check out our demo below!</Body>
+      <div
+        style={{
+          position: "relative",
+          paddingBottom: "64.26282051282051%",
+          height: 0,
+        }}
+      >
+        <iframe
+          src="https://www.loom.com/embed/3ada2dd101374d7fa04f9c978988604f"
+          frameBorder="0"
+          allowFullScreen
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+          }}
+        ></iframe>
+      </div>
       <Divider />
       <H2>More products coming soon!</H2>
     </div>
