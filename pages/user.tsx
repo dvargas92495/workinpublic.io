@@ -11,6 +11,7 @@ import Document from "@dvargas92495/ui/dist/components/Document";
 import RedirectToLogin from "@dvargas92495/ui/dist/components/RedirectToLogin";
 import useAuthenticatedHandler from "@dvargas92495/ui/dist/useAuthenticatedHandler";
 import type { Handler as GetHandler } from "../functions/funding-boards/get";
+import type { Handler as GetIdeaHandler } from "../functions/project_ideas/get";
 import type { Handler as GetLinkHandler } from "../functions/funding-board-projects/get";
 import type { Handler as PostHandler } from "../functions/funding-board/post";
 import type { Handler as PostLinkHandler } from "../functions/funding-board-project/post";
@@ -46,6 +47,7 @@ import CancelIcon from "@mui/icons-material/Cancel";
 import CheckIcon from "@mui/icons-material/Check";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ShareIcon from "@mui/icons-material/Share";
+import IdeaIcon from "@mui/icons-material/Lightbulb";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Card from "@dvargas92495/ui/dist/components/Card";
@@ -301,6 +303,71 @@ const EditableHeader = ({
   );
 };
 
+const IdeaDialog = ({ uuid }: { uuid: string }) => {
+  const [open, setOpen] = useState(false);
+  const handleOpen = useCallback(() => setOpen(true), [setOpen]);
+  const handleClose = useCallback(() => setOpen(false), [setOpen]);
+  const [projectIdeas, setProjectIdeas] = useState<
+    Awaited<ReturnType<GetIdeaHandler>>["projectIdeas"]
+  >([]);
+  const getProjectIdeas = useAuthenticatedHandler<GetIdeaHandler>({
+    method: "GET",
+    path: "project-ideas",
+  });
+  const [error, setError] = useState();
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    setLoading(true);
+    getProjectIdeas({ uuid, limit: 5, offset: 0 })
+      .then(({ projectIdeas }) => {
+        setProjectIdeas(projectIdeas);
+      })
+      .finally(() => setLoading(false));
+  }, [setLoading, setError, uuid]);
+  return (
+    <>
+      <Button onClick={handleOpen} startIcon={<IdeaIcon />} variant="text">
+        Ideas{" "}
+        {!!projectIdeas.length && (
+          <div
+            style={{
+              position: "absolute",
+              width: 16,
+              height: 16,
+              borderRadius: 8,
+              background: "red",
+            }}
+          />
+        )}
+      </Button>
+      <Dialog open={open} onClose={handleClose}>
+        <DialogTitle>Review Project Ideas</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Click into each idea below to review, accept, or reject.
+          </DialogContentText>
+          {projectIdeas.map((pi) => (
+            <Box
+              sx={{
+                borderBottom: "1px dashed #888888",
+                background: pi.reviewed ? "#33333380" : undefined,
+                padding: "8px",
+              }}
+              key={pi.uuid}
+            >
+              {pi.name} from {pi.email}
+            </Box>
+          ))}
+          <Box component={"p"} sx={{ minHeight: "32px" }}>
+            {loading && <CircularProgress size={24} />}
+            {error}
+          </Box>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+};
+
 const ShareDialog = ({ uuid, share }: { uuid: string; share?: string }) => {
   const [open, setOpen] = useState(false);
   const handleOpen = useCallback(() => setOpen(true), [setOpen]);
@@ -358,9 +425,14 @@ const ShareDialog = ({ uuid, share }: { uuid: string; share?: string }) => {
   }, [uuid]);
   return (
     <>
-      <IconButton onClick={handleOpen}>
-        <ShareIcon />
-      </IconButton>
+      <Button
+        onClick={handleOpen}
+        startIcon={<ShareIcon />}
+        variant="text"
+        sx={{mx:1}}
+      >
+        Share
+      </Button>
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Share Funding Board</DialogTitle>
         <DialogContent>
@@ -574,40 +646,42 @@ const FundingBoardTabContent = ({
             })
           }
         />
-        <FormDialog<Omit<Parameters<PostLinkHandler>[0], "user" | "board">>
-          title={"New Funding Board Project"}
-          buttonText={"New"}
-          Button={(props) => <Button {...props} startIcon={<AddIcon />} />}
-          formElements={{
-            name: {
-              defaultValue: "",
-              order: 0,
-              component: StringField,
-              validate: (s) => (!!s ? "" : "`name` is required"),
-            },
-            link: {
-              defaultValue: "",
-              order: 1,
-              component: StringField,
-              validate: () => "",
-            },
-            target: {
-              defaultValue: 100,
-              order: 2,
-              component: NumberField,
-              validate: (n) => (n > 0 ? "" : "`target` must be greater than 0"),
-            },
-          }}
-          onSave={(body) =>
-            postFundingBoardProject({ ...body, board: id }).then(refresh)
-          }
-        />
+        <div>
+          <IdeaDialog uuid={id} key={id} />
+          <ShareDialog uuid={id} share={properties["share"]} key={id} />
+          <FormDialog<Omit<Parameters<PostLinkHandler>[0], "user" | "board">>
+            title={"New Funding Board Project"}
+            buttonText={"New"}
+            Button={(props) => <Button {...props} startIcon={<AddIcon />} />}
+            formElements={{
+              name: {
+                defaultValue: "",
+                order: 0,
+                component: StringField,
+                validate: (s) => (!!s ? "" : "`name` is required"),
+              },
+              link: {
+                defaultValue: "",
+                order: 1,
+                component: StringField,
+                validate: () => "",
+              },
+              target: {
+                defaultValue: 100,
+                order: 2,
+                component: NumberField,
+                validate: (n) =>
+                  n > 0 ? "" : "`target` must be greater than 0",
+              },
+            }}
+            onSave={(body) =>
+              postFundingBoardProject({ ...body, board: id }).then(refresh)
+            }
+          />
+        </div>
       </Box>
       <Box flexGrow={1}>
         <Paper sx={{ width: "100%", overflow: "hidden" }}>
-          <div>
-            <ShareDialog uuid={id} share={properties["share"]} key={id} />
-          </div>
           <TableContainer sx={{ maxHeight: 440 }}>
             <Table stickyHeader aria-label="sticky table">
               <TableHead>
@@ -985,7 +1059,5 @@ const DashboardPage: React.FunctionComponent = () => (
   </Document>
 );
 
-export const Head = (): React.ReactElement => (
-  <LayoutHead title={"User"} />
-);
+export const Head = (): React.ReactElement => <LayoutHead title={"User"} />;
 export default DashboardPage;

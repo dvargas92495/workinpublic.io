@@ -15,6 +15,7 @@ env:
   STRIPE_PUBLIC_KEY: ${{ secrets.STAGING_STRIPE_PUBLIC_KEY }}
   STRIPE_SECRET_KEY: ${{ secrets.STAGING_STRIPE_SECRET_KEY }}
   STRIPE_CHECKOUT_SECRET: ${{ secrets.STAGING_STRIPE_CHECKOUT_SECRET }}
+  SUPPORT_EMAIL: support@staging.workinpublic.io
   TYPEORM_CONNECTION: mysql
   TYPEORM_HOST: vargas-arts.c2sjnb5f4d57.us-east-1.rds.amazonaws.com
   TYPEORM_USERNAME: staging_workinpublic_io

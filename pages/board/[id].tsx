@@ -8,7 +8,9 @@ import useHandler from "@dvargas92495/ui/dist/useHandler";
 import NumberField from "@dvargas92495/ui/dist/components/NumberField";
 import { loadStripe } from "@stripe/stripe-js";
 import type { Handler as FundHandler } from "../../functions/project-fund/post";
+import type { Handler as IdeaHandler } from "../../functions/project-idea/post";
 import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
 
 type ProjectFundButtonProps = {
   uuid: string;
@@ -18,11 +20,15 @@ type ProjectFundButtonProps = {
 
 const stripe = loadStripe(process.env.STRIPE_PUBLIC_KEY || "");
 
-const ProjectFundButtonDialog: React.FunctionComponent<
-  ProjectFundButtonProps & {
-    handler: FundHandler;
-  }
-> = ({ name, uuid, handler, isOpen = false }) => {
+const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = ({
+  name,
+  uuid,
+  isOpen = false,
+}) => {
+  const postHandler = useHandler<FundHandler>({
+    method: "POST",
+    path: "project-fund",
+  });
   return (
     <FormDialog<{ funding: number }>
       defaultIsOpen={isOpen}
@@ -30,7 +36,7 @@ const ProjectFundButtonDialog: React.FunctionComponent<
       contentText={`Funding will be held in escrow until completion of the project.`}
       buttonText={"FUND"}
       onSave={({ funding }) =>
-        handler({
+        postHandler({
           uuid,
           funding,
         }).then((r) =>
@@ -60,24 +66,19 @@ const ProjectFundButtonDialog: React.FunctionComponent<
   );
 };
 
-const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = (
-  props
-) => {
-  const postHandler = useHandler<FundHandler>({
-    method: "POST",
-    path: "project-fund",
-  });
-  return <ProjectFundButtonDialog {...props} handler={postHandler} />;
-};
-
 type Project = Props["projects"][number] & { percentProgress: number };
 
 export const BoardComponent = ({
+  uuid,
   name,
   projects = [],
-  root = ''
-}: Props & {root?: string}): React.ReactElement => {
+  root = "",
+}: Props & { root?: string }): React.ReactElement => {
   const [search, setSearch] = useState("");
+  const postHandler = useHandler<IdeaHandler>({
+    method: "POST",
+    path: "project-idea",
+  });
   const mapper = useCallback(
     (item: Project) => ({
       avatar: (
@@ -145,6 +146,56 @@ export const BoardComponent = ({
           mapper={mapper}
           filter={filter}
           subheader={"Fund a project to move it up in priority!"}
+        />
+      </Box>
+      <Box
+        sx={{
+          p: 2,
+          width: "100%",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <span>Have a project idea for the {name} Funding Board?</span>
+        <FormDialog<{ name: string; description: string; email: string }>
+          title={name}
+          contentText={`Your idea will be submitted for review`}
+          buttonText={"Submit An Idea"}
+          onSave={(body) =>
+            postHandler({
+              uuid,
+              ...body,
+            })
+          }
+          formElements={{
+            name: {
+              order: 0,
+              defaultValue: "",
+              component: StringField,
+              validate: (v) => (v ? "" : "Name is required"),
+            },
+            description: {
+              order: 1,
+              defaultValue: "",
+              component: ({ value, setValue, ...rest }) => (
+                <TextField
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  multiline
+                  {...rest}
+                />
+              ),
+              validate: (v) => (v ? "" : "Description is required"),
+            },
+            email: {
+              order: 2,
+              defaultValue: "",
+              component: StringField,
+              validate: (v) =>
+                v.includes("@") ? "" : "Please enter a valid email address",
+            },
+          }}
         />
       </Box>
     </Box>

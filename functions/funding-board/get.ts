@@ -33,6 +33,7 @@ const logic = ({
           skip: offset,
         })
         .then((fundingBoardProjects = []) => ({
+          uuid: board.uuid,
           name: board.name,
           projects: fundingBoardProjects.map(({ project }) => {
             const { user_id, ...rest } = project as ProjectSchema;
