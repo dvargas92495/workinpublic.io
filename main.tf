@@ -127,14 +127,10 @@ module "aws-serverless-backend_staging" {
 
 module "aws_email" {
   source  = "dvargas92495/email/aws"
-  version = "1.1.7"
+  version = "2.0.4"
 
   domain = "workinpublic.io"
   zone_id = module.aws_static_site.route53_zone_id
-  forward_to = "dvargas92495@gmail.com"
-  tags = {
-    Application = "workinpublic-io"
-  } 
 }
 
 module "aws_email_staging" {
