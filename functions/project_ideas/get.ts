@@ -1,6 +1,6 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import ProjectIdea from "../../db/project_idea";
 import FundingBoard from "../../db/funding_board";
 
@@ -16,7 +16,7 @@ const logic = ({
   connectTypeorm([ProjectIdea, FundingBoard])
     .then((con) =>
       con.getRepository(ProjectIdea).find({
-        where: { funding_board: uuid, },
+        where: { funding_board: uuid },
         relations: ["project"],
         take: limit,
         skip: offset,

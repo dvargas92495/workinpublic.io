@@ -1,5 +1,5 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard, { FundingBoardSchema } from "../../db/funding_board";
 import Project from "../../db/project";
@@ -45,12 +45,12 @@ const getContent = (link: string): Promise<string> => {
     regex: /^.*$/,
     mapper: DEFAULT_MAPPER,
   };
-  return mapper(...(regex.exec(link) || [])).then(
-    (s) => s || DEFAULT_MAPPER(link)
-  ).catch((e) => {
-    console.log(e.response?.data);
-    return DEFAULT_MAPPER(link);
-  });
+  return mapper(...(regex.exec(link) || []))
+    .then((s) => s || DEFAULT_MAPPER(link))
+    .catch((e) => {
+      console.log(e.response?.data);
+      return DEFAULT_MAPPER(link);
+    });
 };
 
 const logic = ({ uuid }: { uuid: string }) =>

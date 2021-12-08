@@ -1,6 +1,6 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import Project, { ProjectSchema } from "../../db/project";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";

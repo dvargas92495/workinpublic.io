@@ -4,8 +4,8 @@ import {
   NotFoundError,
   ForbiddenError,
 } from "aws-sdk-plus/dist/errors";
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import FundingBoard from "../../db/funding_board";
 import FundingBoardProject from "../../db/funding_board_project";
 import Project from "../../db/project";

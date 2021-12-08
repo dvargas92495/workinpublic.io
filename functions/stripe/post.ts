@@ -1,4 +1,4 @@
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import { users, User } from "@clerk/clerk-sdk-node";
 import { ConflictError, InternalServorError } from "aws-sdk-plus/dist/errors";
@@ -20,8 +20,8 @@ const logic = ({
       type: "express",
       email,
       metadata: {
-        application: 'workinpublic.io'
-      }
+        application: "workinpublic.io",
+      },
     })
     .then((a) =>
       stripe.accountLinks

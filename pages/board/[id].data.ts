@@ -1,6 +1,6 @@
 import type { Handler as GetHandler } from "../../functions/funding-board/get";
 import axios from "axios";
-import formatError from "@dvargas92495/api/dist/formatError";
+import formatError from "@dvargas92495/api/formatError";
 
 export type Props = Awaited<ReturnType<GetHandler>>;
 

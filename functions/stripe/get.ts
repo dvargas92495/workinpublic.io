@@ -1,4 +1,4 @@
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
 import { User } from "@clerk/clerk-sdk-node";
 import { stripe } from "../_common";
@@ -11,7 +11,7 @@ const logic = async ({
   "stripe-refresh": string;
   "stripe-return": string;
   user: User;
-}): Promise<{ url?: string; connected: boolean | 'redirecting' }> => {
+}): Promise<{ url?: string; connected: boolean | "redirecting" }> => {
   const account = privateMetadata["stripe"] as string;
   if (!account) {
     return { connected: false };
@@ -25,7 +25,7 @@ const logic = async ({
         type: "account_onboarding",
       })
       .then((l) => ({
-        connected: 'redirecting',
+        connected: "redirecting",
         url: l.url,
       }));
   }

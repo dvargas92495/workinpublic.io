@@ -33,7 +33,7 @@ const ProjectFundButton: React.FunctionComponent<ProjectFundButtonProps> = ({
     <FormDialog<{ funding: number }>
       defaultIsOpen={isOpen}
       title={name}
-      contentText={`Funding will be held in escrow until completion of the project.`}
+      contentText={`Funding will be refundable until completion of the project.`}
       buttonText={"FUND"}
       onSave={({ funding }) =>
         postHandler({

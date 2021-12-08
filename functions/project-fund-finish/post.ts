@@ -1,5 +1,6 @@
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
-import { createAPIGatewayProxyHandler } from "aws-sdk-plus";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
+import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
+import sendEmail from "aws-sdk-plus/dist/sendEmail";
 import type { Stripe } from "stripe";
 import { stripe } from "../_common";
 import buildPagesByProjectId from "../_common/buildPagesByProjectId";
@@ -11,6 +12,10 @@ import type {
   APIGatewayProxyEventHeaders,
   APIGatewayProxyHandler,
 } from "aws-lambda/trigger/api-gateway-proxy";
+import { users } from "@clerk/clerk-sdk-node";
+import React from "react";
+import NewProjectBackerEmail from "../_common/NewProjectBackerEmail";
+import ThankProjectBackerEmail from "../_common/ThankProjectBackerEmail";
 
 const normalizeHeaders = (hdrs: APIGatewayProxyEventHeaders) =>
   Object.fromEntries(
@@ -64,36 +69,77 @@ const logic = ({
   stripeResource: Stripe.Checkout.Session;
 }) =>
   stripe.paymentIntents
-    .retrieve(stripeResource.payment_intent as string)
+    .retrieve(stripeResource.payment_intent as string, { expand: ["customer"] })
     .then((r) => ({
       project: r.metadata?.project,
       amount: r.amount,
       payment_intent: r.id,
+      email: (r.customer as Stripe.Customer).email || "",
     }))
-    .then(({ amount, ...p }) =>
+    .then(({ amount, email, ...p }) =>
       connectTypeorm([
         Project,
         ProjectBacker,
         FundingBoard,
         FundingBoardProject,
-      ]).then((con) =>
-        con
-          .getRepository(ProjectBacker)
-          .insert(p)
-          .then(() => {
-            const projectRepo = con.getRepository(Project);
-            return projectRepo
-              .findOne(p.project, { select: ["progress"] })
-              .then((pi) => {
-                return projectRepo.update(p.project, {
-                  progress: (pi?.progress || 0) + amount / 100,
+      ])
+        .then((con) =>
+          con
+            .getRepository(ProjectBacker)
+            .insert(p)
+            .then((result) => {
+              const projectRepo = con.getRepository(Project);
+              return projectRepo
+                .findOne(p.project, { select: ["progress"] })
+                .then((pi) => {
+                  return projectRepo
+                    .update(p.project, {
+                      progress: (pi?.progress || 0) + amount / 100,
+                    })
+                    .then(() => buildPagesByProjectId(con, p.project))
+                    .then(() => ({
+                      project: pi,
+                      uuid: result.identifiers[0].uuid,
+                    }));
                 });
-              })
-              .then(() => p.project);
-          })
-          .then((project) => buildPagesByProjectId(con, project))
-      )
-    )
-    .then(() => ({ success: true }));
+            })
+        )
+        .then(({ project, uuid }) =>
+          users
+            .getUser(project?.user_id || "")
+            .then((u) => ({
+              fullName: `${u.firstName} ${u.lastName}`,
+              ownerEmail:
+                u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId)
+                  ?.emailAddress || "",
+            }))
+            .then(({ fullName, ownerEmail }) =>
+              Promise.all([
+                sendEmail({
+                  to: ownerEmail,
+                  subject: "Congratulations! Your project just got funded!",
+                  body: React.createElement(NewProjectBackerEmail, {
+                    fullName,
+                    projectName: project?.name || "",
+                    amount,
+                    email,
+                  }),
+                  replyTo: email,
+                }).catch(() => console.error("Failed to send owner email")),
+                sendEmail({
+                  to: email,
+                  subject: "Thank you for funding my project!",
+                  body: React.createElement(ThankProjectBackerEmail, {
+                    fullName,
+                    projectName: project?.name || "",
+                    uuid,
+                  }),
+                  replyTo: ownerEmail,
+                }),
+              ])
+            )
+        )
+        .then(() => ({ success: true }))
+    );
 
 export const handler = verifyStripeWebhook(createAPIGatewayProxyHandler(logic));

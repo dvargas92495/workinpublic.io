@@ -1,6 +1,6 @@
 import { stripe } from "../_common";
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import Project, { ProjectSchema } from "../../db/project";
 import { users } from "@clerk/clerk-sdk-node";
 import { ConflictError, NotFoundError } from "aws-sdk-plus/dist/errors";
@@ -15,7 +15,10 @@ const logic = async ({ uuid, funding }: { uuid: string; funding: number }) =>
       const destination = await users
         .getUser(project.user_id)
         .then((r) => r.privateMetadata["stripe"] as string);
-      if (!destination) throw new ConflictError(`User associated with project ${uuid} hasn't connected with Stripe.`)
+      if (!destination)
+        throw new ConflictError(
+          `User associated with project ${uuid} hasn't connected with Stripe.`
+        );
       const payment_intent_data = {
         metadata: { project: uuid },
         application_fee_amount: 30 + Math.ceil(amount * 0.08),

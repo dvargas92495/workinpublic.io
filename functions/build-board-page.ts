@@ -7,7 +7,7 @@ import * as Page from "../pages/board/[id]";
 import * as data from "../pages/board/[id].data";
 import * as _html from "../pages/_html";
 import FundingBoard from "../db/funding_board";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 
 const s3 = new AWS.S3();
 const Bucket = (process.env.HOST || "").replace(/^https?:\/\//, "");
@@ -15,11 +15,10 @@ const Bucket = (process.env.HOST || "").replace(/^https?:\/\//, "");
 const createEmbed = (uuid: string) =>
   (process.env.NODE_ENV === "development"
     ? new Promise<string>((resolve, reject) =>
-        fs
-          .readFile(
-            path.join(process.env.FE_DIR_PREFIX || ".", "out", "board.js"),
-            (err, data) => (err ? reject(err) : resolve(data.toString()))
-          )
+        fs.readFile(
+          path.join(process.env.FE_DIR_PREFIX || ".", "out", "board.js"),
+          (err, data) => (err ? reject(err) : resolve(data.toString()))
+        )
       ).catch(() => "")
     : s3
         .getObject({
@@ -48,7 +47,8 @@ const createEmbed = (uuid: string) =>
 export const handler = ({ uuid }: { uuid: string }) =>
   connectTypeorm([FundingBoard])
     .then((con) =>
-      con.getRepository(FundingBoard)
+      con
+        .getRepository(FundingBoard)
         .findOneOrFail(uuid)
         .then((r) => (r.share ? [r.share, r.uuid] : [r.uuid]))
         .catch(() => [uuid])

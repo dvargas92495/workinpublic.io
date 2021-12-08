@@ -1,7 +1,7 @@
 import type { Handler as GetHandler } from "../../functions/project/get";
 import axios from "axios";
 import remarkGfm from "remark-gfm";
-import formatError from "@dvargas92495/api/dist/formatError";
+import formatError from "@dvargas92495/api/formatError";
 import { evaluate } from "@mdx-js/mdx";
 import React from "react";
 import ReactDOMServer from "react-dom/server";

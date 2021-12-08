@@ -4,8 +4,8 @@ import {
   MethodNotAllowedError,
   NotFoundError,
 } from "aws-sdk-plus/dist/errors";
-import clerkAuthenticateLambda from "@dvargas92495/api/dist/clerkAuthenticateLambda";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import clerkAuthenticateLambda from "@dvargas92495/api/clerkAuthenticateLambda";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import FundingBoard, { FundingBoardSchema } from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
 import FundingBoardProject from "../../db/funding_board_project";
@@ -58,9 +58,9 @@ const logic = ({
                       .getRepository(Project)
                       .delete(r.project)
                       .then((d) =>
-                        invokeDeleteProjectPage((r.project as ProjectSchema).uuid).then(
-                          () => !!d.affected
-                        )
+                        invokeDeleteProjectPage(
+                          (r.project as ProjectSchema).uuid
+                        ).then(() => !!d.affected)
                       ),
                   ]
                 : []),

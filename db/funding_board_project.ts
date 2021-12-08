@@ -23,10 +23,12 @@ export default new EntitySchema<FundingBoardProject>({
     funding_board: {
       target: FundingBoard.options.name,
       type: "many-to-one",
+      nullable: false
     },
     project: {
       target: Project.options.name,
       type: "many-to-one",
+      nullable: false,
     },
   },
 });

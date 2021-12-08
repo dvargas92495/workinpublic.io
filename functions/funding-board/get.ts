@@ -1,5 +1,5 @@
 import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProxyHandler";
-import connectTypeorm from "@dvargas92495/api/dist/connectTypeorm";
+import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard from "../../db/funding_board";
 import Project, { ProjectSchema } from "../../db/project";
