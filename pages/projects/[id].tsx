@@ -5,6 +5,9 @@ import Link from "@mui/material/Link";
 import LinearProgress from "@mui/material/LinearProgress";
 import Tooltip from "@mui/material/Tooltip";
 import Box from "@mui/material/Box";
+import H1 from "@dvargas92495/ui/dist/components/H1";
+import H6 from "@dvargas92495/ui/dist/components/H6";
+import ProjectFundButton from "../_common/ProjectFundButton";
 
 const ProjectPage = ({
   name,
@@ -12,6 +15,7 @@ const ProjectPage = ({
   progress,
   target,
   content,
+  uuid,
 }: Props): React.ReactElement => {
   const [isCheckout, setIsCheckout] = useState(false);
   useEffect(() => {
@@ -22,8 +26,17 @@ const ProjectPage = ({
     <Layout>
       <div>
         {isCheckout && <div>Thank you for funding!</div>}
-        <h1>{name}</h1>
-        <h6>
+        <H1
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <span>{name}</span>
+          <ProjectFundButton uuid={uuid} name={name} />
+        </H1>
+        <H6>
           Boards Listed:
           {boards.map((b) => (
             <Link
@@ -34,7 +47,7 @@ const ProjectPage = ({
               {b.name}
             </Link>
           ))}
-        </h6>
+        </H6>
         <Box sx={{ my: "16px" }}>
           <Tooltip title={`Funded $${progress} out of $${target}`}>
             <LinearProgress

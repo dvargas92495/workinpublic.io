@@ -77,6 +77,7 @@ const logic = ({ uuid }: { uuid: string }) =>
           return rest;
         }),
         content,
+        uuid,
       }));
     });
 

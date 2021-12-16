@@ -23,7 +23,7 @@ const ProductsPage: React.FunctionComponent = () => {
     uuid: "",
   });
   useEffect(() => {
-    const id = new URLSearchParams(window.location.search).get("id");
+    const id = new URLSearchParams(window.location.search).get("id") || '';
     getRefund({ id })
       .then(setRefundInfo)
       .catch((e) => setError(e.message));
@@ -51,8 +51,8 @@ const ProductsPage: React.FunctionComponent = () => {
           {refundInfo.projectName}
         </Body>
         <Body>
-          <b>Project Name: </b>
-          {refundInfo.projectName}
+          <b>Amount: </b>
+          ${refundInfo.amount}
         </Body>
         <div>
           <Button

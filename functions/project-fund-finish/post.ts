@@ -76,7 +76,7 @@ const logic = ({
       payment_intent: r.id,
       email: (r.customer as Stripe.Customer).email || "",
     }))
-    .then(({ amount, email, ...p }) =>
+    .then(({ email, ...p }) =>
       connectTypeorm([
         Project,
         ProjectBacker,
@@ -90,56 +90,60 @@ const logic = ({
             .then((result) => {
               const projectRepo = con.getRepository(Project);
               return projectRepo
-                .findOne(p.project, { select: ["progress"] })
+                .findOne(p.project, { select: ["user_id", "name"] })
                 .then((pi) => {
-                  return projectRepo
-                    .update(p.project, {
-                      progress: (pi?.progress || 0) + amount / 100,
-                    })
-                    .then(() => buildPagesByProjectId(con, p.project))
-                    .then(() => ({
-                      project: pi,
-                      uuid: result.identifiers[0].uuid,
-                    }));
+                  return buildPagesByProjectId(con, p.project).then(() => ({
+                    project: pi,
+                    uuid: result.identifiers[0].uuid,
+                  }));
                 });
             })
         )
         .then(({ project, uuid }) =>
-          users
-            .getUser(project?.user_id || "")
-            .then((u) => ({
-              fullName: `${u.firstName} ${u.lastName}`,
-              ownerEmail:
-                u.emailAddresses.find((e) => e.id === u.primaryEmailAddressId)
-                  ?.emailAddress || "",
-            }))
-            .then(({ fullName, ownerEmail }) =>
-              Promise.all([
-                sendEmail({
-                  to: ownerEmail,
-                  subject: "Congratulations! Your project just got funded!",
-                  body: React.createElement(NewProjectBackerEmail, {
-                    fullName,
-                    projectName: project?.name || "",
-                    amount,
-                    email,
-                  }),
-                  replyTo: email,
-                }).catch(() => console.error("Failed to send owner email")),
-                sendEmail({
-                  to: email,
-                  subject: "Thank you for funding my project!",
-                  body: React.createElement(ThankProjectBackerEmail, {
-                    fullName,
-                    projectName: project?.name || "",
-                    uuid,
-                  }),
-                  replyTo: ownerEmail,
-                }),
-              ])
-            )
+          (project?.user_id
+            ? users
+                .getUser(project.user_id)
+                .then((u) => ({
+                  fullName: `${u.firstName} ${u.lastName}`,
+                  ownerEmail:
+                    u.emailAddresses.find(
+                      (e) => e.id === u.primaryEmailAddressId
+                    )?.emailAddress || "",
+                }))
+                .then(({ fullName, ownerEmail }) =>
+                  Promise.all([
+                    sendEmail({
+                      to: ownerEmail,
+                      subject: "Congratulations! Your project just got funded!",
+                      body: React.createElement(NewProjectBackerEmail, {
+                        fullName,
+                        projectName: project?.name || "",
+                        amount: p.amount / 100,
+                        email,
+                      }),
+                      replyTo: email,
+                    }).catch(() => console.error("Failed to send owner email")),
+                    sendEmail({
+                      to: email,
+                      subject: "Thank you for funding my project!",
+                      body: React.createElement(ThankProjectBackerEmail, {
+                        fullName,
+                        projectName: project?.name || "",
+                        uuid,
+                      }),
+                      replyTo: ownerEmail,
+                    }),
+                  ])
+                )
+                .catch((e) => {
+                  console.error("Failed to send funding email");
+                  console.error(e);
+                })
+            : Promise.resolve().then(() => {
+                console.warn("Couldn't find a user id for project");
+              })
+          ).then(() => ({ success: true }))
         )
-        .then(() => ({ success: true }))
     );
 
 export const handler = verifyStripeWebhook(createAPIGatewayProxyHandler(logic));
