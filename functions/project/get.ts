@@ -2,9 +2,10 @@ import createAPIGatewayProxyHandler from "aws-sdk-plus/dist/createAPIGatewayProx
 import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 import FundingBoardProject from "../../db/funding_board_project";
 import FundingBoard, { FundingBoardSchema } from "../../db/funding_board";
-import Project from "../../db/project";
+import Project, { ProjectSchema } from "../../db/project";
 import { NotFoundError } from "aws-sdk-plus/dist/errors";
 import axios from "axios";
+import project_backer from "../../db/project_backer";
 
 const LINK_ADAPTERS: {
   regex: RegExp;
@@ -54,10 +55,30 @@ const getContent = (link: string): Promise<string> => {
 };
 
 const logic = ({ uuid }: { uuid: string }) =>
-  connectTypeorm([FundingBoardProject, Project, FundingBoard])
+  connectTypeorm([FundingBoardProject, Project, FundingBoard, project_backer])
     .then((con) =>
       Promise.all([
-        con.getRepository(Project).findOne(uuid),
+        con
+          .createQueryBuilder()
+          .select([
+            "p.uuid as uuid",
+            "p.target as target",
+            "p.link as link",
+            "p.name as name",
+            "SUM(pb.amount) as progress",
+          ])
+          .from(Project, "p")
+          .innerJoin(
+            project_backer.options.name,
+            "pb",
+            "pb.projectUuid = p.uuid"
+          )
+          .where("p.uuid = :uuid AND pb.refunded = 0", {
+            uuid,
+          })
+          .groupBy("p.uuid")
+          .execute()
+          .then((r) => r[0] as ProjectSchema & { progress: 0 }),
         con.getRepository(FundingBoardProject).find({
           where: { project: uuid },
           relations: ["funding_board"],
@@ -71,7 +92,7 @@ const logic = ({ uuid }: { uuid: string }) =>
       return getContent(project.link).then((content) => ({
         name: project.name || "",
         target: project.target || 0,
-        progress: project.progress || 0,
+        progress: project.progress/100 || 0,
         boards: fundingBoardProjects.map(({ funding_board }) => {
           const { user_id, ...rest } = funding_board as FundingBoardSchema;
           return rest;
