@@ -20,7 +20,7 @@ const EmailLayout: React.FC = ({ children }) => (
     >
       <img
         alt={"WorkInPublic"}
-        src={`${process.env.HOST}/logo.png`}
+        src={`${process.env.ORIGIN}/logo.png`}
         width={60}
         height={60}
       />
@@ -47,7 +47,7 @@ const EmailLayout: React.FC = ({ children }) => (
       <div style={{ width: "50%" }}>
         Sent From{" "}
         <a
-          href={process.env.HOST}
+          href={process.env.ORIGIN}
           style={{ color: "#4d9bd7", textDecoration: "none" }}
         >
           WorkInPublic
@@ -55,7 +55,7 @@ const EmailLayout: React.FC = ({ children }) => (
       </div>
       <div style={{ width: "50%", textAlign: "right" }}>
         <a
-          href={`mailto:support@${process.env.HOST}`}
+          href={`mailto:support@${process.env.ORIGIN}`}
           style={{ color: "#4d9bd7", textDecoration: "none" }}
         >
           Contact Support

@@ -17,6 +17,7 @@ env:
   CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
   FE_DIR_PREFIX: /tmp
   HOST: https://workinpublic.io
+  ORIGIN: https://workinpublic.io
   STRIPE_PUBLIC_KEY: ${{ secrets.STRIPE_PUBLIC_KEY }}
   STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
   STRIPE_CHECKOUT_SECRET: ${{ secrets.STRIPE_CHECKOUT_SECRET }}

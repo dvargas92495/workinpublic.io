@@ -5,7 +5,7 @@ import * as _html from "../pages/_html";
 import invalidate from "./_common/invalidate";
 
 const s3 = new AWS.S3();
-const Bucket = (process.env.HOST || "").replace(/^https?:\/\//, "");
+const Bucket = (process.env.ORIGIN || "").replace(/^https?:\/\//, "");
 
 const deleteHtml = (id: string) =>
   (process.env.NODE_ENV === "development"

@@ -20,8 +20,8 @@ const logic = async ({
     return stripe.accountLinks
       .create({
         account,
-        refresh_url: `${process.env.HOST}/dashboard?stripe-refresh=true`,
-        return_url: `${process.env.HOST}/dashboard?stripe-return=true`,
+        refresh_url: `${process.env.ORIGIN}/dashboard?stripe-refresh=true`,
+        return_url: `${process.env.ORIGIN}/dashboard?stripe-return=true`,
         type: "account_onboarding",
       })
       .then((l) => ({

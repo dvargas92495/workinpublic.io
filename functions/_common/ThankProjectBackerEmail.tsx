@@ -19,7 +19,7 @@ const NewProjectBackerEmail = ({
     <hr />
     <p>
       You can pull your funding at any time before the project finishes by
-      clicking on <a href={`${process.env.HOST}/refund?id=${uuid}`}>this link.</a>
+      clicking on <a href={`${process.env.ORIGIN}/refund?id=${uuid}`}>this link.</a>
     </p>
   </EmailLayout>
 );

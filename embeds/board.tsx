@@ -10,7 +10,7 @@ const props = JSON.parse(propString);
 
 const render = () =>
   ReactDOM.render(
-    <BoardComponent {...props} root={process.env.HOST} />,
+    <BoardComponent {...props} root={process.env.ORIGIN} />,
     document.getElementById(boardId)
   );
 

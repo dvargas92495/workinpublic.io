@@ -50,8 +50,8 @@ const logic = async ({ uuid, funding }: { uuid: string; funding: number }) =>
           metadata: {
             callback: `${process.env.API_URL}/project-fund-finish`,
           },
-          success_url: `${process.env.HOST}/projects/${uuid}?checkout=true`,
-          cancel_url: `${process.env.HOST}/projects/${uuid}`,
+          success_url: `${process.env.ORIGIN}/projects/${uuid}?checkout=true`,
+          cancel_url: `${process.env.ORIGIN}/projects/${uuid}`,
         })
         .then((session) => ({ id: session.id, active: false }));
     });

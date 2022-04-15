@@ -32,7 +32,7 @@ const NewProjectIdeaEmail = ({
       This project idea was submitted by {email}. To ask them more about it, simply reply to this email!
     </p>
     <p>
-        <a href={`${process.env.HOST}/user`}>Click here</a> to review this idea. 
+        <a href={`${process.env.ORIGIN}/user`}>Click here</a> to review this idea. 
     </p>
   </EmailLayout>
 );

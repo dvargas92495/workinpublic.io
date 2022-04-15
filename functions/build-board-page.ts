@@ -1,5 +1,6 @@
 import isr from "fuegojs/dist/isr";
-import fuegoDeploy from "./_common/fuegoDeploy";
+import { targetedDeploy } from "fuegojs/dist/deploy";
+import { FE_OUT_DIR } from "fuegojs/dist/common";
 import AWS from "aws-sdk";
 import fs from "fs";
 import path from "path";
@@ -10,7 +11,7 @@ import FundingBoard from "../db/funding_board";
 import connectTypeorm from "@dvargas92495/api/connectTypeorm";
 
 const s3 = new AWS.S3();
-const Bucket = (process.env.HOST || "").replace(/^https?:\/\//, "");
+const Bucket = (process.env.ORIGIN || "").replace(/^https?:\/\//, "");
 
 const createEmbed = (uuid: string) =>
   (process.env.NODE_ENV === "development"
@@ -61,6 +62,14 @@ export const handler = ({ uuid }: { uuid: string }) =>
       )
     )
     .then(() => createEmbed(uuid))
-    .then(fuegoDeploy);
+    .then(() =>
+      targetedDeploy(
+        [
+          path.join(FE_OUT_DIR, `board/${uuid}.js`),
+          path.join(FE_OUT_DIR, `board/${uuid}.html`),
+        ],
+        true
+      )
+    );
 
 export type Handler = typeof handler;
