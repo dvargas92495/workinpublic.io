@@ -33,8 +33,8 @@ export const logic = ({ id }: { id: string }) =>
         ])
         .from(FundingBoardProject, "fbp")
         .innerJoin(Project.options.name, "p", "fbp.projectUuid = p.uuid")
-        .innerJoin(project_backer.options.name, "pb", "pb.projectUuid = p.uuid")
-        .where("fbp.fundingBoardUuid = :id AND pb.refunded = 0", {
+        .leftJoin(project_backer.options.name, "pb", "pb.projectUuid = p.uuid")
+        .where("fbp.fundingBoardUuid = :id AND (pb.refunded = 0 OR pb.refunded IS NULL)", {
           id: board.uuid,
         })
         .groupBy("p.uuid")
@@ -46,14 +46,14 @@ export const logic = ({ id }: { id: string }) =>
               target: number;
               link: string;
               name: string;
-              progress: number;
+              progress: number | null;
             }[]
           ) => ({
             uuid: board.uuid,
             name: board.name,
             projects: projects.map((p) => ({
               ...p,
-              progress: p.progress / 100,
+              progress: (p.progress || 0) / 100,
             })),
           })
         );
